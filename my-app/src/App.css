@@ -1,0 +1,62 @@
+*{
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: 'Ubuntu';
+}
+
+/* NavBar*/
+.nav-bar{
+  height: 62px;
+  background-color: rgb(142, 171, 244);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+}
+
+.nav-bar h2{
+  font-size: 40px;
+  padding: 0 4rem;
+}
+.nav-bar a{
+  text-decoration: none;
+  color: black;
+}
+.nav-bar .reno-home{
+  transform: scale(0.65);
+  padding-right:10px;
+}
+
+.not-found{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgb(68,68,68);
+  min-height: 80vh;
+}
+
+.not-found h2{
+  font-size: 55px;
+}
+
+.not-found p{
+  font-size: 20px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
