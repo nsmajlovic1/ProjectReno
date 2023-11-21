@@ -20,15 +20,15 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // The auth endpoint that creates a new user record or logs a user based on an existing record
-app.post("/auth", (req, res) => {
+app.post("/login", (req, res) => {
     
     const { username, password } = req.body;
 
     // Look up the user entry in the database
     const user = db.get("users").value().filter(user => username === user.username)
 
-    // If found, compare the hashed passwords and generate the JWT token for the user
-    if (user.length === 1) {
+    // Compare the hashed passwords and generate the JWT token for the user
+    
         bcrypt.compare(password, user[0].password, function (_err, result) {
             if (!result) {
                 return res.status(401).json({ message: "Invalid password" });
@@ -42,11 +42,40 @@ app.post("/auth", (req, res) => {
                 res.status(200).json({ message: "success", token });
             }
         });
-    
-    } 
 
 
 })
+
+// Register a new user using username and password
+app.post("/register", (req, res) => {
+    const { username, password } = req.body;
+
+    // Hash the password and add a new user to the database
+    bcrypt.hash(password, 10, function (err, hash) {
+        if (err) {
+            return res.status(500).json({ message: "Error hashing password" });
+        }
+
+        const newUser = {
+            username,
+            password: hash, // Save the hashed password
+        };
+
+        // Save the new user to the database
+        db.get("users").push(newUser).write();
+
+        console.log({ username, password: hash })
+
+        let loginData = {
+            username,
+            signInTime: Date.now(),
+        };
+
+        const token = jwt.sign(loginData, jwtSecretKey);
+        res.status(200).json({ message: "success", token });
+    });
+});
+
 
 // The verify endpoint that checks if a given JWT token is valid
 app.post('/verify', (req, res) => {

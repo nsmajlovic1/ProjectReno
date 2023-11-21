@@ -1,20 +1,31 @@
 import { Link } from "react-router-dom";
 import RenoLogo from "../images/renologo.png"
 import styled from "styled-components";
-const Navbar = () => {
-    return ( 
+const Navbar = ({ loggedIn, handleLogout }) => {
+    console.log(loggedIn)
+    console.log(loggedIn);
+    return ( <>
     <nav className = "nav-bar">
         <Link to="/">
             <h2>renohome</h2>
         </Link>
-        <div className="reno-home">
-            <img src={RenoLogo} alt="Renologo" />
-        </div>
         <AuthLinks>
-        <Link to="/login">Login</Link>
-        <Link to="/register">Register</Link>
+            {loggedIn ? (
+                <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+            ) : (
+            <>
+            <Link to="/login">Login</Link>
+            <Link to="/register">Register</Link>
+            </>
+            )}
         </AuthLinks>
-    </nav>);
+    </nav>
+    
+    <div className="reno-home">
+        <img src={RenoLogo} alt="Renologo" />
+    </div></>
+    );
+    
 }
  
 export default Navbar;
@@ -27,5 +38,13 @@ const AuthLinks = styled.div`
     &:first-child{
         margin-right: 2rem;
     }
-   } 
+    }
+`
+
+const LogoutButton = styled.button`
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-right: 2rem;
 `

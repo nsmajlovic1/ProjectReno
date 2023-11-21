@@ -1,8 +1,12 @@
 {
-    "users": [
-        {
-            "username": "admin",
-            "password": "$2b$10$pNWphhkvaKh5eZ2Obg30.Od7hStEH8HTghB1SZfmpdorcM6qiFF2O"
-        }
-    ]
+  "users": [
+    {
+      "username": "admin",
+      "password": "$2b$10$pNWphhkvaKh5eZ2Obg30.Od7hStEH8HTghB1SZfmpdorcM6qiFF2O"
+    },
+    {
+      "username": "superadmin",
+      "password": "$2b$10$gJaI/.a9MT6mU9LJ9NwyCOZ1f0qkxT7CXNAui9Pup0zR/bs1VL7vq"
+    }
+  ]
 }

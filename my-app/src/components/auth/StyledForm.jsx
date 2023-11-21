@@ -30,5 +30,10 @@ export const StyledForm = styled.form`
         border: none;
         }
     }
+
+    .errorLabel {
+        color: red;
+        font-size: 12px;
+    }
     
 `

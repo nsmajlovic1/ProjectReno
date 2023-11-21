@@ -5,36 +5,12 @@ const Login = (props) => {
 
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
-    const [usernameError, setUsernameError] = useState("")
-    const [passwordError, setPasswordError] = useState("")
+    const [errorMessage, setErrorMessage] = useState('');
     
     const navigate = useNavigate();
         
     const onButtonClick = () => {
-       // Set initial error values to empty
-       setUsernameError("")
-       setPasswordError("")
-
-       // Check if the user has entered both fields correctly
-       if ("" === username) {
-           setUsernameError("Please enter your username")
-           return
-       }
-
-       if (!/^(?=.{1,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/.test(username)) {
-           setUsernameError("Please enter a valid username")
-           return
-       }
-
-       if ("" === password) {
-           setPasswordError("Please enter a password")
-           return
-       }
-
-       if (password.length < 7) {
-           setPasswordError("The password must be 8 characters or longer")
-           return
-       }
+        setErrorMessage("")
 
         // Check if username has an account associated with it
         checkAccountExists(accountExists => {
@@ -42,8 +18,8 @@ const Login = (props) => {
             if (accountExists)
                 logIn()
             else
-            if (window.confirm("An account does not exist with this username: " + username + ". Do you want to create a new account?")) {
-                logIn()
+            {
+                setErrorMessage("Wrong username or password");
             }  
             })
     }
@@ -65,7 +41,7 @@ const Login = (props) => {
 
 // Log in a user using username and password
 const logIn = () => {
-    fetch("http://localhost:3080/auth", {
+    fetch("http://localhost:3080/login", {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
@@ -80,7 +56,7 @@ const logIn = () => {
             props.setUsername(username)
             navigate("/")
         } else {
-            window.alert("Wrong username or password")
+            setErrorMessage("Wrong username or password");
         }
     })
 } 
@@ -94,7 +70,7 @@ const logIn = () => {
             placeholder="username"
             onChange={ev => setUsername(ev.target.value)}
         />
-        <label className="errorLabel">{usernameError}</label>
+        
         
         
         <input 
@@ -102,13 +78,17 @@ const logIn = () => {
             placeholder="password"
             onChange={ev => setPassword(ev.target.value)}
         />
-        <label className="errorLabel">{passwordError}</label>
+        
         
         <button
         type="button"
         onClick={onButtonClick}>
             Login
         </button>
+        <label className="errorLabel">{errorMessage}</label>
+        
+        
+
     </StyledForm>
      );
 }

@@ -12,20 +12,23 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-left: 75px;
   
 }
 
 .nav-bar h2{
-  font-size: 40px;
-  padding: 0 4rem;
+  font-size: 37px;
+  padding: 0 3rem;
 }
 .nav-bar a{
   text-decoration: none;
   color: black;
 }
-.nav-bar .reno-home{
+.reno-home{
   transform: scale(0.65);
-  margin-right:60px;
+  position: fixed;
+  top: -0.3%;
+  padding-left: 10px;
 }
 
 .not-found{
