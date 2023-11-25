@@ -13,21 +13,24 @@
   justify-content: space-between;
   align-items: center;
   margin-left: 75px;
-  
 }
 
 .nav-bar h2{
-  font-size: 37px;
-  padding: 0 3rem;
+  font-size: 50px;
+  padding: 0 0rem;
+  background-color: white;
+  width: 118%;
+  height: 62px;
 }
+
 .nav-bar a{
   text-decoration: none;
   color: black;
 }
 .reno-home{
-  transform: scale(0.65);
+  transform: scale(0.60);
   position: fixed;
-  top: -0.3%;
+  top: -0.1%;
   padding-left: 10px;
 }
 
@@ -48,7 +51,14 @@
   font-size: 20px;
 }
 
+/* Admin */
+.link-active{
+  color: #4b70e2
+}
 
+.link-inactive{
+  color: rgb(97,97,97)
+}
 
 
 

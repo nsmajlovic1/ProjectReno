@@ -9,11 +9,15 @@ import Register from './components/auth/Register';
 
 import { useEffect, useState } from 'react';
 import Dashboard from './components/admin/Dashboard';
-import Proposal from './components/admin/Proposal';
+import Overview from './components/admin/Overview';
+import Proposals from './components/admin/Proposals';
+import CreateProposal from './components/admin/CreateProposal';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
   const [username, setUsername] = useState("")
+
+  
 
   useEffect(() => {
     // Fetch the username and token from local storage
@@ -50,6 +54,7 @@ function App() {
     localStorage.removeItem("user");
     setLoggedIn(false);
     setUsername("");
+    
   };
 
   
@@ -62,7 +67,10 @@ function App() {
         <Route path="/not-found" element={<NotFound />}/>
         <Route path="/register" element={<Register setLoggedIn={setLoggedIn} setUsername={setUsername} />}/>
         <Route path="/admin" element={<Dashboard />}>
-          <Route path="proposal" element={<Proposal />}/>
+          <Route path="proposals" element={<Proposals />}>
+              <Route path="create-proposal" element={<CreateProposal />} />
+          </Route>
+          <Route path="overview" element={<Overview />}/>
         </Route>
         <Route path="/login" element={<Login setLoggedIn={setLoggedIn} setUsername={setUsername} />}/>
         <Route path="/" exact element={<Home username={username} loggedIn={loggedIn} setLoggedIn={setLoggedIn}/>}/>
