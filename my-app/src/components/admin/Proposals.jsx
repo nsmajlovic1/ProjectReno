@@ -1,4 +1,5 @@
 import{Outlet, useNavigate} from "react-router-dom"
+import { AdminHeaders, PrimaryButton } from "./CommonStyled";
 
 const Proposals = () => {
     
@@ -6,11 +7,15 @@ const Proposals = () => {
 
     return ( 
     <>
+    <AdminHeaders>
     CreateProposal
-    <button onClick={() => navigate("/admin/proposals/create-proposal")}>
+    <PrimaryButton onClick={() => navigate("/admin/proposals/create-proposal")}>
         Create
-    </button>
-    <Outlet/></> );
+    </PrimaryButton>
+    </AdminHeaders>
+    <Outlet/> 
+    </>
+    );
 }
  
 export default Proposals;
