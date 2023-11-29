@@ -12,6 +12,7 @@ import Dashboard from './components/admin/Dashboard';
 import Overview from './components/admin/Overview';
 import Proposals from './components/admin/Proposals';
 import CreateProposal from './components/admin/CreateProposal';
+import CreateMilestone from './components/admin/CreateMilestone';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -67,9 +68,9 @@ function App() {
         <Route path="/not-found" element={<NotFound />}/>
         <Route path="/register" element={<Register setLoggedIn={setLoggedIn} setUsername={setUsername} />}/>
         <Route path="/admin" element={<Dashboard />}>
-          <Route path="proposals" element={<Proposals />}>
-              <Route path="create-proposal" element={<CreateProposal />} />
-          </Route>
+          <Route path="proposals" element={<Proposals />}/>
+            <Route path="create-proposal" element={<CreateProposal />} />
+            <Route path="create-milestone" element={<CreateMilestone />} />
           <Route path="overview" element={<Overview />}/>
         </Route>
         <Route path="/login" element={<Login setLoggedIn={setLoggedIn} setUsername={setUsername} />}/>

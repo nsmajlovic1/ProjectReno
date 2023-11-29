@@ -8,8 +8,7 @@ const Proposals = () => {
     return ( 
     <>
     <AdminHeaders>
-    CreateProposal
-    <PrimaryButton onClick={() => navigate("/admin/proposals/create-proposal")}>
+    <PrimaryButton onClick={() => navigate("/admin/create-proposal")}>
         Create
     </PrimaryButton>
     </AdminHeaders>

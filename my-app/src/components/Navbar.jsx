@@ -44,6 +44,7 @@ const AuthLinks = styled.div`
         margin-right: 2rem;
     }
     }
+    font-weight: bold;
 `
 
 const LogoutButton = styled.button`
