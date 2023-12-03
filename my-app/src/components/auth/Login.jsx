@@ -21,7 +21,7 @@ const Login = (props) => {
             {
                 setErrorMessage("Wrong username or password");
             }  
-            })
+        })
     }
 
    // Call the server API to check if the given username ID already exists
@@ -54,7 +54,7 @@ const logIn = () => {
             localStorage.setItem("user", JSON.stringify({username, token: r.token}))
             props.setLoggedIn(true)
             props.setUsername(username)
-            navigate("/")
+            navigate("/admin/overview")
         } else {
             setErrorMessage("Wrong username or password");
         }

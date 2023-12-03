@@ -77,7 +77,7 @@ const CreateProposal = () => {
         <ImagePreview>
             {uploadimg ? (
             <>
-            <img src={uploadimg} alt="upload image"></img>
+            <img src={uploadimg} alt="upload"></img>
             </> 
            ) : (
            <p>Image preview</p>

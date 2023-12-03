@@ -2,8 +2,12 @@ import { StyledForm } from "./StyledForm";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 const Register = (props) => {
+    const [name, setName] = useState("")
+    const [email, setEmail] = useState("")
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
+    const [nameError, setNameError] = useState("")
+    const [emailError, setEmailError] = useState("")
     const [usernameError, setUsernameError] = useState("")
     const [passwordError, setPasswordError] = useState("")
     
@@ -12,10 +16,27 @@ const Register = (props) => {
         
     const onButtonClick = () => {
        // Set initial error values to empty
+       setNameError("")
+       setEmailError("")
        setUsernameError("")
        setPasswordError("")
 
-       // Check if the user has entered both fields correctly
+       // Check if the user has entered fields correctly
+       if ("" === name) {
+            setNameError("Please enter your name")
+            return
+       }
+
+       if ("" === email) {
+            setEmailError("Please enter your email")
+            return
+       }
+
+       if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+            setEmailError("Please enter a valid email")
+            return
+       }
+       
        if ("" === username) {
            setUsernameError("Please enter your username")
            return
@@ -70,7 +91,7 @@ const registerNewUser = () => {
         headers: {
             'Content-Type': 'application/json'
           },
-        body: JSON.stringify({username, password})
+        body: JSON.stringify({name, email, username, password})
     })
     .then(r => r.json())
     .then(r => {
@@ -94,14 +115,16 @@ const registerNewUser = () => {
         <input 
             type="text" 
             placeholder="name"
-            
+            onChange={ev => setName(ev.target.value)}
         />
+        <label className="errorLabel">{nameError}</label>
 
         <input 
             type="text" 
             placeholder="email"
-            
+            onChange={ev => setEmail(ev.target.value)}
         />
+        <label className="errorLabel">{emailError}</label>
 
         <input 
             type="text" 
