@@ -14,7 +14,6 @@ const Navbar = ({ loggedIn, handleLogout }) => {
         
             {loggedIn ? (
             <Links>
-                <Link to="/admin/overview">Admin</Link>
                 <LogoutButton onClick={() => { navigate("/"); handleLogout(); }}>Logout</LogoutButton>
             </Links>
             ) : (

@@ -29,5 +29,5 @@ export const SecondaryButton = styled.button`
   border: none;
   outline: none;
   cursor: pointer;
-  margin: 0.5rem 0;
+  margin: 0.5rem 0.2rem;
 `;

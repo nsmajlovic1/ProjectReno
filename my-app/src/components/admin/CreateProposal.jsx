@@ -11,7 +11,10 @@ const CreateProposal = () => {
     const [descriptionError, setDescriptionError] = useState("")
     const navigate = useNavigate()
 
-   /* const onButtonClick = () => {
+    const onButtonClick = async (event) => {
+        // Prevent the default form submission behavior
+        event.preventDefault(); 
+
         // Set initial error values to empty
         setProjectnameError("")
         setDescriptionError("")
@@ -28,7 +31,7 @@ const CreateProposal = () => {
         else{
             navigate("/admin/create-milestone")
         }
-    }*/
+    }
 
     const handleImageUpload = (e) =>{
         const file = e.target.files[0];
@@ -72,7 +75,7 @@ const CreateProposal = () => {
                 accept="image/" 
                 onChange={handleImageUpload}>
             </input>
-            <SecondaryButton onClick={() => navigate("/admin/create-milestone")}>Continue</SecondaryButton>
+            <SecondaryButton onClick={onButtonClick}>Continue</SecondaryButton>
         </StyledForm>
         <ImagePreview>
             {uploadimg ? (

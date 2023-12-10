@@ -13,6 +13,7 @@ import Overview from './components/admin/Overview';
 import Proposals from './components/admin/Proposals';
 import CreateProposal from './components/admin/CreateProposal';
 import CreateMilestone from './components/admin/CreateMilestone';
+import AddBudget from './components/admin/AddBudget';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -71,6 +72,7 @@ function App() {
           <Route path="proposals" element={<Proposals />}/>
             <Route path="create-proposal" element={<CreateProposal />} />
             <Route path="create-milestone" element={<CreateMilestone />} />
+            <Route path="add-budget" element={<AddBudget />} />
           <Route path="overview" element={<Overview />}/>
         </Route>
         <Route path="/login" element={<Login setLoggedIn={setLoggedIn} setUsername={setUsername} />}/>

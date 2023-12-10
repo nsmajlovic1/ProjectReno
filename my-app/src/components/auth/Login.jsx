@@ -52,9 +52,26 @@ const logIn = () => {
     .then(r => {
         if ('success' === r.message) {
             localStorage.setItem("user", JSON.stringify({username, token: r.token}))
-            props.setLoggedIn(true)
-            props.setUsername(username)
-            navigate("/admin/overview")
+            
+            
+            // Fetch the user's role after login
+            fetch("http://localhost:3080/get-role", {
+                method: "POST",
+                headers: {
+                    'jwt-token': r.token
+                },
+            })
+            .then(roleResponse => roleResponse.json())
+            .then(roleData => {
+                props.setLoggedIn(true)
+                props.setUsername(username)
+                
+                if (roleData.role === "admin") {
+                    navigate("/admin/overview");
+                } else {
+                    navigate("/");
+                }
+            });
         } else {
             setErrorMessage("Wrong username or password");
         }

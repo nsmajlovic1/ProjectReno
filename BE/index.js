@@ -3,9 +3,10 @@ const bcrypt = require("bcrypt")
 var cors = require('cors')
 const jwt = require("jsonwebtoken")
 const { User, /*createInitialUsers*/ } = require('./models/user.js');
+const { Proposal, Milestone } = require('./models/proposal.js');
 const sequelize = require('./config/sequelize.js');
 
-/*
+/*Used database.json file before connection to database
 var low = require("lowdb");
 var FileSync = require("lowdb/adapters/FileSync");
 var adapter = new FileSync("./database.json");
@@ -24,19 +25,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-// The auth endpoint that creates a new user record or logs a user based on an existing record
+// The auth endpoint that logs a user based on an existing record
 app.post("/login", async (req, res) => {
     
     const { username, password } = req.body;
 
-    // Look up the user entry in the database
+    
     //const user = db.get("users").value().filter(user => username === user.username)
 
-    // Compare the hashed passwords and generate the JWT token for the user
+    
     
     try {
+        
+        // Look up the user entry in the database
         const user = await User.findOne({ where: { username } });
-    
+        
+        // Compare the hashed passwords and generate the JWT token for the user
         const result = await bcrypt.compare(password, user.password);
 
         if (!result) {
@@ -54,6 +58,8 @@ app.post("/login", async (req, res) => {
         console.error(error);
         res.status(500).json({ message: "Internal Server Error" });
     }
+
+    //Old code that uses database.json file
         /*bcrypt.compare(password, user[0].password, function (_err, result) {
             if (!result) {
                 return res.status(401).json({ message: "Invalid password" });
@@ -72,7 +78,7 @@ app.post("/login", async (req, res) => {
 
 })
 
-// Register a new user using username and password
+// The auth endpoint that creates a new user record 
 app.post("/register", async (req, res) => {
     const { name, email, username, password} = req.body;
     
@@ -97,11 +103,13 @@ app.post("/register", async (req, res) => {
 
         const token = jwt.sign(loginData, jwtSecretKey);
         res.status(200).json({ message: "success", token });
+        
     } catch (error) {
         console.error('Error creating a new user:', error);
         res.status(500).json({ message: "Error creating a new user" });
     }
-    
+
+    //Old code that uses database.json file
     /*
     // Hash the password and add a new user to the database
     bcrypt.hash(password, 10, function (err, hash) {
@@ -157,6 +165,7 @@ app.post('/check-account', async (req, res) => {
 
     console.log(req.body)
 
+    //Old code that uses database.json file
     /*const user = db.get("users").value().filter(user => username === user.username)
     console.log(user)
     res.status(200).json({
@@ -184,6 +193,46 @@ app.post('/check-account', async (req, res) => {
             status: "Error checking user account",
             userExists: false
         });
+    }
+});
+
+
+app.post('/get-role', async (req, res) => {
+    const tokenHeaderKey = "jwt-token";
+    const authToken = req.headers[tokenHeaderKey];
+  
+    try {
+      const verified = jwt.verify(authToken, jwtSecretKey);
+      if (verified) {
+        // Fetch the user entry in the database
+        const user = await User.findOne({
+            where: { username: verified.username },
+            attributes: ['role']
+        });
+        if (user) {
+          res.status(200).json({ role: user.role || "user" }); // Assume 'user' as default role
+        } else {
+          res.status(404).json({ error: "User not found" });
+        }
+      } else {
+        // Access Denied
+        res.status(401).json({ status: "invalid auth", message: "error" });
+      }
+    } catch (error) {
+      // Access Denied
+      res.status(401).json({ status: "invalid auth", message: "error" });
+    }
+  });
+  
+app.get('/stats', async (req, res) => {
+    try {
+        const userCount = await User.count();
+        const proposalCount = await Proposal.count();
+        console.log(userCount)
+        res.json({ stats:{userCount, proposalCount} });
+    } catch (error) {
+        console.error("Error fetching stats:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 });
 
