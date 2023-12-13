@@ -70,9 +70,9 @@ function App() {
         <Route path="/register" element={<Register setLoggedIn={setLoggedIn} setUsername={setUsername} />}/>
         <Route path="/admin" element={<Dashboard />}>
           <Route path="proposals" element={<Proposals />}/>
-            <Route path="create-proposal" element={<CreateProposal />} />
-            <Route path="create-milestone/:proposalId" element={<CreateMilestone />} />
-            <Route path="add-budget" element={<AddBudget />} />
+          <Route path="create-proposal" element={<CreateProposal />} />
+          <Route path="create-milestone/:proposalId" element={<CreateMilestone />} />
+          <Route path="add-budget" element={<AddBudget />} />
           <Route path="overview" element={<Overview />}/>
         </Route>
         <Route path="/login" element={<Login setLoggedIn={setLoggedIn} setUsername={setUsername} />}/>

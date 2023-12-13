@@ -7,6 +7,8 @@
 
 /* NavBar*/
 .nav-bar{
+  position: sticky;
+  top: 0;
   height: 62px;
   background-color: rgb(142, 171, 244);
   display: flex;
@@ -53,7 +55,10 @@
 
 /* Admin */
 .link-active{
-  color: #4b70e2
+  color: #4b70e2;
+  border-left: 3px solid #4b70e2;
+  padding: 5px;
+  border-radius: 2px;
 }
 
 .link-inactive{

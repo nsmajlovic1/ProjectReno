@@ -336,6 +336,42 @@ app.post('/create-budget', async (req, res) => {
     }
 });
   
+
+app.delete('/delete-proposal/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const proposal = await Proposal.findOne({ where: { id: parseInt(id, 10) } });
+      if (!proposal) {
+        return res.status(404).json({ error: 'Proposal not found' });
+      }
+  
+      await proposal.destroy();
+      res.status(200).json({ message: 'Proposal deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting proposal:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+app.get('/get-proposal/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const proposal = await Proposal.findOne({ where: { id: parseInt(id, 10) } });
+      if (!proposal) {
+        return res.status(404).json({ error: 'Proposal not found' });
+      }
+  
+      res.status(200).json({ proposal });
+    } catch (error) {
+      console.error('Error fetching proposal:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+
 sequelize.sync({ force: false }).then(async () => {
     //await createInitialUsers();
     console.log('Database synced');

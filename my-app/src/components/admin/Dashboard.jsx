@@ -1,15 +1,23 @@
 import { NavLink, Outlet } from "react-router-dom";
 import styled from "styled-components";
-
+import {FaClipboard, FaTachometerAlt} from 'react-icons/fa';
 const Dashboard = () => {
     return (
     <StyledDashboard>
         <SideNav>
             <h3>Quick Links</h3>
             <NavLink className={({isActive}) => isActive ? "link-active" : "link-inactive" } 
-            to="/admin/overview">Overview</NavLink>
+            to="/admin/overview">
+                
+                <FaTachometerAlt/> Overview
+            
+            </NavLink>
             <NavLink className={({isActive}) => isActive ? "link-active" : "link-inactive" }
-            to="/admin/proposals">Proposals</NavLink>
+            to="/admin/proposals">
+            
+                <FaClipboard/> Proposals
+            
+            </NavLink>
         </SideNav>
         <Content>
             <Outlet/>
@@ -49,6 +57,14 @@ const SideNav = styled.div`
         margin-bottom: 1.3rem;
         font-size: 15px;
         opacity: 2;
+        display: flex;
+        align-items: center;
+        font-weight: 700;
+
+        svg{
+            margin-right: 0.5rem;
+            font-size: 18px;
+        }
     }
 `
 
