@@ -1,3 +1,4 @@
+// Assuming you have Sequelize models for User and Proposal
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/sequelize.js');
 
@@ -12,15 +13,19 @@ const Proposal = sequelize.define('Proposal', {
   },
   startDate: {
     type: DataTypes.DATE,
-    allowNull: true,
+    allowNull: false,
   },
   endDate: {
     type: DataTypes.DATE,
-    allowNull: true,
+    allowNull: false,
   },
   milestoneCount: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
+  },
+  status: {
+    type: DataTypes.STRING,
+    defaultValue: 'pending', 
   }
 });
 
@@ -32,7 +37,7 @@ const Milestone = sequelize.define('Milestone', {
   },
   budget: {
     type: DataTypes.FLOAT,
-    allowNull: false,
+    defaultValue: 0,
   },
 });
 

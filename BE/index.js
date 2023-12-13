@@ -236,6 +236,106 @@ app.get('/stats', async (req, res) => {
     }
 });
 
+app.post('/create-proposal', async (req, res) => {
+    const { name, description, startDate, endDate, milestoneCount} = req.body;
+  
+    try {
+        if (milestoneCount > 3) {
+            return res.status(400).json({ error: 'Milestone count exceeds the limit' });
+          }
+        const proposal = await Proposal.create({
+            name,
+            description,
+            startDate,
+            endDate,
+            milestoneCount,
+            status: 'pending' 
+        }, {
+            include: [Milestone],
+        });
+    
+        res.status(201).json({ proposal });
+        } catch (error) {
+        console.error('Error creating proposal:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+        }
+  });
+
+
+app.get('/get-proposals', async (req, res) => {
+    try {
+      const proposals = await Proposal.findAll();
+      res.status(200).json({ proposals });
+    } catch (error) {
+      console.error('Error fetching proposals:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+
+
+app.post('/create-milestone', async (req, res) => {
+    const { name, ProposalId } = req.body;
+    
+    try {  
+        const proposal = await Proposal.findOne({ where: { id: parseInt(ProposalId, 10) } });
+        
+        if (!proposal) {
+            return res.status(404).json({ error: 'Proposal not found' });
+        }
+        
+        if (proposal.milestoneCount == 3) {
+            return res.status(400).json({ error: 'Milestone count exceeds the limit' });
+        }
+
+      const newMilestone = await Milestone.create({ 
+        name,
+        ProposalId: proposal.id
+    });
+
+      await proposal.increment('milestoneCount');
+      
+      
+
+      res.status(201).json({ newMilestone });
+    } catch (error) {
+      console.error('Error creating milestone:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+  
+app.get('/get-milestones', async (req, res) => {
+    try {
+      const milestones = await Milestone.findAll();
+      res.status(200).json({ milestones });
+    } catch (error) {
+      console.error('Error fetching milestones:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+
+app.post('/create-budget', async (req, res) => {
+    const { budget,milestoneId } = req.body;
+
+    try {
+        // Provjerite je li Milestone povezan s trenutnim Proposal-om
+        const milestone = await Milestone.findOne({ where: { id: milestoneId } });
+        if (!milestone) {
+        return res.status(404).json({ error: 'Milestone not found' });
+        }
+
+        // Dodajte budžet za Milestone
+        await milestone.update({ budget });
+
+        res.status(201).json({ milestone });
+    } catch (error) {
+        console.error('Error creating budget:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+  
 sequelize.sync({ force: false }).then(async () => {
     //await createInitialUsers();
     console.log('Database synced');

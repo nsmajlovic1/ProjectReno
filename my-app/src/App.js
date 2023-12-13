@@ -71,7 +71,7 @@ function App() {
         <Route path="/admin" element={<Dashboard />}>
           <Route path="proposals" element={<Proposals />}/>
             <Route path="create-proposal" element={<CreateProposal />} />
-            <Route path="create-milestone" element={<CreateMilestone />} />
+            <Route path="create-milestone/:proposalId" element={<CreateMilestone />} />
             <Route path="add-budget" element={<AddBudget />} />
           <Route path="overview" element={<Overview />}/>
         </Route>

@@ -1,5 +1,191 @@
+import styled from "styled-components";
+import { useState, useEffect } from "react";
+import { SecondaryButton, ThirdButton, FourthButton  } from "./CommonStyled";
+import { useNavigate, useParams } from "react-router-dom"
+
 const AddBudget = () => {
-    return ( <h3>Create a Milestone</h3>);
+    const [budgetname, setBudgetName] = useState("")
+    const [budgetvalue, setBudgetValue] = useState("")
+    const [budgetNameError, setBudgetNameError] = useState("")
+    const [budgetValueError, setBudgetValueError] = useState("")
+    const [milestoneId, setMilestoneId] = useState(null);
+    const [successMessage, setSuccessMessage] = useState("");
+    const navigate = useNavigate()
+
+    const { proposalId } = useParams();
+
+    const resetForm = () => {
+        setBudgetName("");
+        setBudgetValue("");
+        setBudgetNameError("");
+        setBudgetValueError("");
+        setMilestoneId(null);
+    };
+
+    const onButtonClick1 = async (event) => {
+        // Prevent the default form submission behavior
+        event.preventDefault(); 
+        
+        // Set initial error values to empty
+        setBudgetNameError("")
+        setBudgetValueError("")
+ 
+        // Check if the user has entered both fields correctly
+        if ("" === budgetname) {
+            setBudgetNameError("Please enter a Budget name")
+            return
+        }
+        if (!/^[\w-]{1,15}$/.test(budgetname)) {
+            setBudgetNameError("Name has more than 15 characters")
+            return
+        }
+        else if ("" === budgetvalue) {
+            setBudgetValueError("Please enter a Budget value")
+            return
+        }
+        else if (budgetvalue>1000000) {
+            setBudgetValueError("Budget must be less than 1,000,000.00")
+            return
+        }
+        else{
+            try {
+                const response = await fetch('http://localhost:3080/create-budget', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: budgetname,
+                        budget: budgetvalue,
+                        milestoneId
+                    }),
+                });
+        
+                const data = await response.json();
+                console.log('Budget created:', data);
+                setSuccessMessage("Budget successfully added!");
+                resetForm()
+                // Navigate to the proposals page
+            } catch (error) {
+                console.error('Error creating budget:', error);
+                // Handle the error
+            }
+        }
+    }
+    const onButtonClick2 = (event) => {
+        event.preventDefault();
+        navigate(`/admin/create-milestone/${proposalId}`)
+        
+    }
+
+    const onButtonClick3 = () => {
+        
+        navigate('/admin/proposals');
+    
+    }
+    
+    
+    const onMilestoneChange = (milestoneId) => {
+        setMilestoneId(milestoneId);
+    }
+
+    const MilestoneDropdown = ({ onMilestoneChange }) => {
+        const [milestones, setMilestones] = useState([]);
+    
+        useEffect(() => {
+            // Fetch dostupne Milestones i postavi ih u stanje
+            const fetchMilestones = async () => {
+                try {
+                    const response = await fetch('http://localhost:3080/get-milestones');
+                    const data = await response.json();
+                    setMilestones(data.milestones);
+                } catch (error) {
+                    console.error('Error fetching milestones:', error);
+                }
+            };
+    
+            fetchMilestones();
+        }, []);
+    
+        return (
+            <select onChange={(e) => onMilestoneChange(e.target.value)}>
+                <option value="">Choose Milestone</option>
+                {Array.isArray(milestones) && milestones.map((milestone) => (
+                    <option key={milestone.id} value={milestone.id}>
+                        {milestone.name}
+                    </option>
+                ))}
+            </select>
+        );
+    };
+
+    return ( 
+    <StyledAddBudget>
+        <StyledForm>
+            <h3>Budget</h3>
+            <input 
+                type = "text" 
+                placeholder = "Budget Name"
+                onChange={ev => setBudgetName(ev.target.value)}>    
+            </input>
+            <label className="errorLabel">{budgetNameError}</label>
+            <input 
+                type = "text" 
+                placeholder = "Budget Value"
+                onChange={ev => setBudgetValue(ev.target.value)}>    
+            </input>
+            <label className="errorLabel">{budgetValueError}</label>
+
+            <MilestoneDropdown onMilestoneChange={onMilestoneChange} />
+            <FourthButton onClick={onButtonClick1}>+ Add Budget</FourthButton>
+            <label className="successLabel">{successMessage}</label>
+            <ThirdButton onClick={onButtonClick2}>Previous step</ThirdButton>
+            <SecondaryButton onClick={onButtonClick3}>Submit</SecondaryButton>
+        </StyledForm>
+    </StyledAddBudget> 
+    );
 }
  
 export default AddBudget;
+
+const StyledForm = styled.form`
+  
+  flex-direction: column;
+  max-width: 230px;
+  margin-top: 1.5rem;
+  margin-left: 370px;
+  padding: 10px;
+  min-height: 30px;
+
+  input {
+    padding: 10px;
+    min-height: 30px;
+    outline: none;
+    border-radius: 5px;
+    border: 1px solid rgb(182, 182, 182);
+    margin: 0.35rem 0;
+    width: 400px;
+
+    &:focus {
+      border: 2px solid rgb(0, 208, 255);
+    }
+  }
+  h3{
+    margin-bottom: 0.5rem;
+  }
+
+  .errorLabel {
+        color: red;
+        font-size: 12px;
+    }
+  .successLabel {
+        color: #04b604;
+        font-size: 12px;
+    }
+  
+`;
+
+const StyledAddBudget = styled.div`
+  display: flex;
+  justify-content: space-between;
+`;
