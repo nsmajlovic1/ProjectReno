@@ -44,6 +44,10 @@ const CreateProposal = () => {
             setEndDateError("Please select end date");
             return;
         } 
+        if (startDate && endDate && startDate > endDate) {
+            setStartDateError("Start date cannot be after end date");
+            return;
+        }
         else{
             try {
                 const response = await fetch('http://localhost:3080/create-proposal', {

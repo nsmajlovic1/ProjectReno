@@ -51,18 +51,17 @@ const CreateMilestone = () => {
                 
 
                 if (!response.ok) {
+                    setSuccessMessage("");
                     const errorData = await response.json();
                     setMilestoneError(errorData.error); 
-                    setMilestoneName("");
-                    setMilestoneNameError("");
                     return;
-                }
+                }else{
                 resetForm()
                 const data = await response.json();
                 console.log('Milestone created:', data);
                 
                 setSuccessMessage("Milestone successfully added!");
-                
+                }
             } catch (error) {
                 console.error('Error creating proposal:', error);
                 // Handle the error
@@ -75,13 +74,13 @@ const CreateMilestone = () => {
     
     const onButtonClick2 = (event) => {
         event.preventDefault();
-        navigate("/admin/create-proposal")
+        navigate(`/admin/create-proposal/${proposalId}`)
         
     }
 
     const onButtonClick3 = (event) => {
         event.preventDefault();
-        navigate('/admin/add-budget');
+        navigate(`/admin/add-budget/${proposalId}`);
     }
 
 

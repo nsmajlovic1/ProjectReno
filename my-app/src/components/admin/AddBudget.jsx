@@ -8,6 +8,7 @@ const AddBudget = () => {
     const [budgetvalue, setBudgetValue] = useState("")
     const [budgetNameError, setBudgetNameError] = useState("")
     const [budgetValueError, setBudgetValueError] = useState("")
+    const [milestoneError, setMilestoneError] = useState("")
     const [milestoneId, setMilestoneId] = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
     const navigate = useNavigate()
@@ -29,6 +30,8 @@ const AddBudget = () => {
         // Set initial error values to empty
         setBudgetNameError("")
         setBudgetValueError("")
+        setMilestoneError("");
+        setSuccessMessage("");
  
         // Check if the user has entered both fields correctly
         if ("" === budgetname) {
@@ -47,7 +50,10 @@ const AddBudget = () => {
             setBudgetValueError("Budget must be less than 1,000,000.00")
             return
         }
-        else{
+        else if (!milestoneId) {
+            setMilestoneError("Please choose a milestone");
+            return
+        } else {
             try {
                 const response = await fetch('http://localhost:3080/create-budget', {
                     method: 'POST',
@@ -68,7 +74,7 @@ const AddBudget = () => {
                 // Navigate to the proposals page
             } catch (error) {
                 console.error('Error creating budget:', error);
-                // Handle the error
+                setSuccessMessage("");
             }
         }
     }
@@ -96,7 +102,7 @@ const AddBudget = () => {
             // Fetch dostupne Milestones i postavi ih u stanje
             const fetchMilestones = async () => {
                 try {
-                    const response = await fetch('http://localhost:3080/get-milestones');
+                    const response = await fetch(`http://localhost:3080/get-milestones/${proposalId}`);
                     const data = await response.json();
                     setMilestones(data.milestones);
                 } catch (error) {
@@ -108,14 +114,14 @@ const AddBudget = () => {
         }, []);
     
         return (
-            <select onChange={(e) => onMilestoneChange(e.target.value)}>
+            <StyledDropdown onChange={(e) => onMilestoneChange(e.target.value)}>
                 <option value="">Choose Milestone</option>
                 {Array.isArray(milestones) && milestones.map((milestone) => (
                     <option key={milestone.id} value={milestone.id}>
                         {milestone.name}
                     </option>
                 ))}
-            </select>
+            </StyledDropdown>
         );
     };
 
@@ -137,6 +143,7 @@ const AddBudget = () => {
             <label className="errorLabel">{budgetValueError}</label>
 
             <MilestoneDropdown onMilestoneChange={onMilestoneChange} />
+            <label className="errorLabel">{milestoneError}</label>
             <FourthButton onClick={onButtonClick1}>+ Add Budget</FourthButton>
             <label className="successLabel">{successMessage}</label>
             <ThirdButton onClick={onButtonClick2}>Previous step</ThirdButton>
@@ -188,4 +195,18 @@ const StyledForm = styled.form`
 const StyledAddBudget = styled.div`
   display: flex;
   justify-content: space-between;
+`;
+
+const StyledDropdown = styled.select`
+    padding: 10px;
+    min-height: 30px;
+    outline: none;
+    border-radius: 5px;
+    border: 1px solid rgb(182, 182, 182);
+    margin: 0.35rem 0;
+    width: 200px;
+
+    &:focus {
+        border: 2px solid rgb(0, 208, 255);
+    }
 `;

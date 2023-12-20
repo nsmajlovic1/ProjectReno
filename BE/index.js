@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken")
 const { User, /*createInitialUsers*/ } = require('./models/user.js');
 const { Proposal, Milestone } = require('./models/proposal.js');
 const sequelize = require('./config/sequelize.js');
-
+const { parseISO, format } = require('date-fns');
 /*Used database.json file before connection to database
 var low = require("lowdb");
 var FileSync = require("lowdb/adapters/FileSync");
@@ -316,18 +316,39 @@ app.get('/get-milestones', async (req, res) => {
   });
 
 
+  app.get('/get-milestones/:proposalId', async (req, res) => {
+    const { proposalId } = req.params;
+
+    try {
+        const milestones = await Milestone.findAll({
+            where: { ProposalId: parseInt(proposalId, 10) },
+        });
+        res.status(200).json({ milestones });
+    } catch (error) {
+        console.error('Error fetching milestones:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 app.post('/create-budget', async (req, res) => {
     const { budget,milestoneId } = req.body;
 
     try {
-        // Provjerite je li Milestone povezan s trenutnim Proposal-om
+        
         const milestone = await Milestone.findOne({ where: { id: milestoneId } });
         if (!milestone) {
         return res.status(404).json({ error: 'Milestone not found' });
         }
 
-        // Dodajte budžet za Milestone
         await milestone.update({ budget });
+
+        const proposal = await Proposal.findOne({ where: { id: milestone.ProposalId } });
+        if (proposal) {
+            const currentTotalValue = proposal.totalProposalValue || 0;
+            const newTotalValue = currentTotalValue + parseFloat(budget);
+            await proposal.update({ totalProposalValue: newTotalValue });
+        }
 
         res.status(201).json({ milestone });
     } catch (error) {

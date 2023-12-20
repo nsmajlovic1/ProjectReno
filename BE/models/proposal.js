@@ -12,15 +12,19 @@ const Proposal = sequelize.define('Proposal', {
     allowNull: false,
   },
   startDate: {
-    type: DataTypes.DATE,
+    type: DataTypes.DATEONLY,
     allowNull: false,
   },
   endDate: {
-    type: DataTypes.DATE,
+    type: DataTypes.DATEONLY,
     allowNull: false,
   },
   milestoneCount: {
     type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  totalProposalValue: {
+    type: DataTypes.FLOAT,
     defaultValue: 0,
   },
   status: {
