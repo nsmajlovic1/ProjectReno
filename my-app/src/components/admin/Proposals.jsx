@@ -1,4 +1,4 @@
-import{Outlet, useNavigate, useParams} from "react-router-dom"
+import{Outlet, useNavigate} from "react-router-dom"
 import { useState, useEffect } from 'react';
 import { AdminHeaders, PrimaryButton } from "./CommonStyled";
 import * as React from 'react';
@@ -56,8 +56,8 @@ export default function Proposals() {
     { field: 'description', headerName: 'Description', width: 180 },
     { field: 'startDate', headerName: 'StartDate', width: 130 },
     { field: 'endDate', headerName: 'EndDate', width: 130 },
-    { field: 'milestoneCount', headerName: 'Milestones', width: 110},
-    { field: 'totalProposalValue', headerName: 'Total Proposal Value', width: 170},
+    { field: 'milestoneCount', headerName: 'Milestones', width: 130},
+    { field: 'totalProposalValue', headerName: 'Total Value', width: 140},
     { field: 'status', headerName: 'Status', width: 110},
     {
       field: 'actions',
@@ -68,7 +68,7 @@ export default function Proposals() {
           return(
              <Actions>
               <Delete onClick={() => handleDelete(params.row.id)}>Delete</Delete>
-              <View>View</View>
+              <View onClick={() => navigate(`/proposal/${params.row.id}`)}>View</View>
              </Actions>
           )
       }

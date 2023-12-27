@@ -51,9 +51,6 @@ const logIn = () => {
     .then(r => r.json())
     .then(r => {
         if ('success' === r.message) {
-            localStorage.setItem("user", JSON.stringify({username, token: r.token}))
-            
-            
             // Fetch the user's role after login
             fetch("http://localhost:3080/get-role", {
                 method: "POST",
@@ -65,8 +62,9 @@ const logIn = () => {
             .then(roleData => {
                 props.setLoggedIn(true)
                 props.setUsername(username)
-                
-                if (roleData.role === "admin") {
+                localStorage.setItem("user", JSON.stringify({username, token: r.token, role:roleData.role}))
+                console.log(localStorage.getItem("user"))
+                if (roleData.role === "admin" || roleData.role === "superadmin") {
                     navigate("/admin/overview");
                 } else {
                     navigate("/");

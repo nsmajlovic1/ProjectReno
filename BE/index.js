@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken")
 const { User, /*createInitialUsers*/ } = require('./models/user.js');
 const { Proposal, Milestone } = require('./models/proposal.js');
 const sequelize = require('./config/sequelize.js');
-const { parseISO, format } = require('date-fns');
+
 /*Used database.json file before connection to database
 var low = require("lowdb");
 var FileSync = require("lowdb/adapters/FileSync");
@@ -142,6 +142,7 @@ app.post("/register", async (req, res) => {
 app.post('/verify', (req, res) => {
     const tokenHeaderKey = "jwt-token";
     const authToken = req.headers[tokenHeaderKey];
+    console.log(authToken)
     try {
       const verified = jwt.verify(authToken, jwtSecretKey);
       if (verified) {
@@ -200,7 +201,6 @@ app.post('/check-account', async (req, res) => {
 app.post('/get-role', async (req, res) => {
     const tokenHeaderKey = "jwt-token";
     const authToken = req.headers[tokenHeaderKey];
-  
     try {
       const verified = jwt.verify(authToken, jwtSecretKey);
       if (verified) {
@@ -264,8 +264,28 @@ app.post('/create-proposal', async (req, res) => {
 
 app.get('/get-proposals', async (req, res) => {
     try {
-      const proposals = await Proposal.findAll();
-      res.status(200).json({ proposals });
+      const proposals = await Proposal.findAll({
+        include: Milestone, 
+      });
+      const formattedProposals = proposals.map(proposal => {
+        return {
+          id: proposal.id,
+          name: proposal.name,
+          description: proposal.description,
+          startDate: proposal.startDate,
+          endDate: proposal.endDate,
+          milestoneCount: proposal.milestoneCount,
+          totalProposalValue: proposal.totalProposalValue,
+          status: proposal.status,
+          milestones: proposal.Milestones.map(milestone => {
+            return {
+              name: milestone.name,
+              value: milestone.budget,
+            };
+          })
+        };
+      });
+      res.status(200).json({ proposals: formattedProposals });
     } catch (error) {
       console.error('Error fetching proposals:', error);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -392,6 +412,45 @@ app.get('/get-proposal/:id', async (req, res) => {
     }
   });
 
+
+  app.post('/approve-proposal/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const proposal = await Proposal.findOne({ where: { id: parseInt(id, 10) } });
+        if (!proposal) {
+            return res.status(404).json({ error: 'Proposal not found' });
+        }
+
+        // Dodaj logiku za promjenu statusa na "approved"
+        await proposal.update({ status: 'approved' });
+
+        res.status(200).json({ proposal });
+    } catch (error) {
+        console.error('Error approving proposal:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+app.post('/reject-proposal/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+      const proposal = await Proposal.findOne({ where: { id: parseInt(id, 10) } });
+      if (!proposal) {
+          return res.status(404).json({ error: 'Proposal not found' });
+      }
+
+      // Dodaj logiku za promjenu statusa na "rejected"
+      await proposal.update({ status: 'rejected' });
+
+      res.status(200).json({ proposal });
+  } catch (error) {
+      console.error('Error rejecting proposal:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 sequelize.sync({ force: false }).then(async () => {
     //await createInitialUsers();

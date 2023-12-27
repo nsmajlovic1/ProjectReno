@@ -84,10 +84,9 @@ const AddBudget = () => {
         
     }
 
-    const onButtonClick3 = (event) => {
+    const onButtonClick3 = async (event) => {
         event.preventDefault();
         navigate('/admin/proposals');
-    
     }
     
     

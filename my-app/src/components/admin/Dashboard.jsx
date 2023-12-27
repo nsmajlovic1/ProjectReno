@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import styled from "styled-components";
-import {FaClipboard, FaTachometerAlt} from 'react-icons/fa';
+import {FaClipboard, FaTachometerAlt,FaDollarSign} from 'react-icons/fa';
 const Dashboard = () => {
     return (
     <StyledDashboard>
@@ -16,6 +16,12 @@ const Dashboard = () => {
             to="/admin/proposals">
             
                 <FaClipboard/> Proposals
+            
+            </NavLink>
+            <NavLink className={({isActive}) => isActive ? "link-active" : "link-inactive" }
+            to="/admin/commission-settings">
+            
+                <FaDollarSign/>Commission Settings
             
             </NavLink>
         </SideNav>
