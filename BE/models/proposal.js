@@ -30,6 +30,26 @@ const Proposal = sequelize.define('Proposal', {
   status: {
     type: DataTypes.STRING,
     defaultValue: 'pending', 
+  },
+  downPaymentPercentage: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
+  },
+  delayWithheldPercentage: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
+  },
+  warrantyWithheldPercentage: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
+  },
+  renoHomeownerCommissionPercentage: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
+  },
+  renoContractorCommissionPercentage: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
   }
 });
 
@@ -43,10 +63,33 @@ const Milestone = sequelize.define('Milestone', {
     type: DataTypes.FLOAT,
     defaultValue: 0,
   },
+  startDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+  },
+  endDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+  }
+});
+
+
+const Budget = sequelize.define('Budget', {
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  value: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
+  },
 });
 
 // Define associations
 Proposal.hasMany(Milestone);
 Milestone.belongsTo(Proposal);
 
-module.exports = { Proposal, Milestone };
+Milestone.hasMany(Budget);
+Budget.belongsTo(Milestone);
+
+module.exports = { Proposal, Milestone, Budget };

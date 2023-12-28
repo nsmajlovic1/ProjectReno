@@ -2,19 +2,21 @@ import styled from "styled-components";
 import { useState } from "react";
 import { SecondaryButton, ThirdButton, FourthButton } from "./CommonStyled";
 import { useNavigate, useParams } from "react-router-dom"
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const CreateMilestone = () => {
     const [milestonename, setMilestoneName] = useState("")
     const [milestoneNameError, setMilestoneNameError] = useState("")
     const [milestoneError, setMilestoneError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
+    const [startDateError, setStartDateError] = useState("");
+    const [endDateError, setEndDateError] = useState("");
     const navigate = useNavigate()
     
-    const resetForm = () => {
-        setMilestoneName("");
-        setMilestoneNameError("");
-        setMilestoneError("");
-    };
+    
 
     const { proposalId } = useParams();
 
@@ -24,6 +26,8 @@ const CreateMilestone = () => {
         
         // Set initial error values to empty
         setMilestoneNameError("")
+        setStartDateError("")
+        setEndDateError("")
  
         // Check if the user has entered both fields correctly
         if ("" === milestonename) {
@@ -33,6 +37,18 @@ const CreateMilestone = () => {
         if (!/^[\w-]{1,15}$/.test(milestonename)) {
             setMilestoneNameError("Name has more than 15 characters")
             return
+        }
+        else if (!startDate) {
+            setStartDateError("Please select start date");
+            return;
+        } 
+        if (!endDate) {
+            setEndDateError("Please select end date");
+            return;
+        } 
+        if (startDate && endDate && startDate > endDate) {
+            setStartDateError("Start date cannot be after end date");
+            return;
         }
         
         else{
@@ -44,6 +60,8 @@ const CreateMilestone = () => {
                     },
                     body: JSON.stringify({
                         name: milestonename,
+                        startDate: startDate,
+                        endDate: endDate,
                         ProposalId: proposalId,
                         
                     }),
@@ -56,7 +74,7 @@ const CreateMilestone = () => {
                     setMilestoneError(errorData.error); 
                     return;
                 }else{
-                resetForm()
+                
                 const data = await response.json();
                 console.log('Milestone created:', data);
                 
@@ -64,7 +82,6 @@ const CreateMilestone = () => {
                 }
             } catch (error) {
                 console.error('Error creating proposal:', error);
-                // Handle the error
             }
 
             
@@ -84,10 +101,6 @@ const CreateMilestone = () => {
     }
 
 
-
-    
-
-
     return ( 
         <StyledForm>
             <h3>Milestone</h3>
@@ -97,7 +110,26 @@ const CreateMilestone = () => {
                 onChange={ev => setMilestoneName(ev.target.value)}>    
             </input>
             <label className="errorLabel">{milestoneNameError}</label>
-            
+            <DatePickerWrapper>
+                <DatePicker
+                    selected={startDate}
+                    onChange={(date) => setStartDate(date)}
+                    selectsStart
+                    startDate={startDate}
+                    endDate={endDate}
+                    placeholderText="Start Date"
+                />
+                <label className="errorLabel">{startDateError}</label>
+                <DatePicker
+                    selected={endDate}
+                    onChange={(date) => setEndDate(date)}
+                    selectsEnd
+                    startDate={startDate}
+                    endDate={endDate}
+                    placeholderText="End Date"
+                />
+                <label className="errorLabel">{endDateError}</label>
+            </DatePickerWrapper>
             <FourthButton onClick={onButtonClick1}>+ Add Milestone</FourthButton>
             <label className="errorLabel">{milestoneError}</label>
             <label className="successLabel">{successMessage}</label>
@@ -126,7 +158,7 @@ const StyledForm = styled.form`
     border-radius: 5px;
     border: 1px solid rgb(182, 182, 182);
     margin: 0.35rem 0;
-    width: 400px;
+    width: 300px;
 
     &:focus {
       border: 2px solid rgb(0, 208, 255);
@@ -144,4 +176,11 @@ const StyledForm = styled.form`
         color: #04b604;
         font-size: 12px;
     }
+`;
+
+const DatePickerWrapper = styled.div`
+  
+  justify-content: space-between;
+  margin: 10px 0;
+  width: 70%;
 `;

@@ -22,7 +22,7 @@ const Overview = () => {
         };
 
         fetchData();
-    }, []); // Empty dependency array means this effect runs once after the initial render
+    }, []); 
 
     if (loading) {
         return <div>Loading...</div>;

@@ -15,54 +15,26 @@ const Proposal = () => {
             const data = await response.json();
             setProposal(data.proposal);
             setUserRole(JSON.parse(localStorage.getItem("user"))?.role)
-            console.log(userRole)
           } catch (error) {
             console.error('Error fetching proposals:', error);
           }
         };
     
         fetchProposals();
-        /*
-        const fetchUserData = async () => {
-            try {
-              
-              const token = JSON.parse(localStorage.getItem("user"))?.token
-              console.log(token)
-              
-              const roleResponse = await fetch("http://localhost:3080/get-role", {
-                  headers: {
-                      'Content-Type': 'application/json',
-                      'jwt-token': token, 
-                  },
-              });
-              console.log(token)
-              const roleData = await roleResponse.json();
-              console.log('Role Data:', roleData); 
-              setUserRole(roleData.role);
-              
-            } catch (error) {
-              console.error('Error fetching user data:', error);
-            }
-          };
-      
-          fetchUserData();*/
-      }, [id]);
+      }, [userRole,id]);
 
      
 
       const handleApprove = async () => {
         try {
-            // Implementiraj logiku za odobravanje
             await fetch(`http://localhost:3080/approve-proposal/${id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Dodaj logiku za slanje tokena ako je potrebno
                 },
-                // Dodaj tijelo zahtjeva ako je potrebno
             });
 
-            // Osvježi stanje proposal-a
+            // Refresh the new proposal
             const response = await fetch(`http://localhost:3080/get-proposal/${id}`);
             const data = await response.json();
             setProposal(data.proposal);
@@ -75,17 +47,14 @@ const Proposal = () => {
 
     const handleReject = async () => {
         try {
-            // Implementiraj logiku za odbijanje
             await fetch(`http://localhost:3080/reject-proposal/${id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Dodaj logiku za slanje tokena ako je potrebno
                 },
-                // Dodaj tijelo zahtjeva ako je potrebno
             });
 
-            // Osvježi stanje proposal-a
+            // Refresh the new proposal
             const response = await fetch(`http://localhost:3080/get-proposal/${id}`);
             const data = await response.json();
             setProposal(data.proposal);
@@ -94,6 +63,16 @@ const Proposal = () => {
             console.error('Error rejecting proposal:', error);
         }
     };
+
+    function calculateCommissionAmount(proposal) {
+        const commissionAmount = (proposal.totalProposalValue * proposal.renoHomeownerCommissionPercentage) / 100;
+        return commissionAmount
+      }
+      
+    function calculateNetPayment(proposal) {
+        const netPayment = proposal.totalProposalValue - calculateCommissionAmount(proposal);
+        return netPayment 
+    }
 
     return ( 
     <StyledProposal>
@@ -104,7 +83,9 @@ const Proposal = () => {
                 <p><span>Start Date: </span>{proposal.startDate}</p>
                 <p><span>End Date: </span>{proposal.endDate}</p>
                 <p><span>Number of Milestones: </span>{proposal.milestoneCount}</p>
-                <TotalValue>{new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(proposal.totalProposalValue)}</TotalValue>
+                <Value>Total Proposal Value: {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(proposal.totalProposalValue)}</Value>
+                <Value>Commission Amount: {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(calculateCommissionAmount(proposal))}</Value>
+                <Value>Net Payment to Creator: {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(calculateNetPayment(proposal))}</Value>                
                 { userRole === 'superadmin' && proposal.status === 'pending' ? (
                     <>
                         <RejectButton onClick={handleReject}>
@@ -135,6 +116,7 @@ const ProposalDetails = styled.div`
   margin-left: 2rem;
   h3{
     font-size: 35px;
+    margin: 0.5rem 0;
   }
 
   p span{
@@ -143,10 +125,10 @@ const ProposalDetails = styled.div`
 
 `;
 
-const TotalValue = styled.div`
+const Value = styled.div`
   margin: 1rem 0;
   font-weight: bold;
-  font-size: 35px;
+  font-size: 20px;
 `;
 
 const ProposalContainer = styled.div`

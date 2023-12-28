@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt")
 var cors = require('cors')
 const jwt = require("jsonwebtoken")
 const { User, /*createInitialUsers*/ } = require('./models/user.js');
-const { Proposal, Milestone } = require('./models/proposal.js');
+const { Proposal, Milestone, Budget } = require('./models/proposal.js');
 const sequelize = require('./config/sequelize.js');
 
 /*Used database.json file before connection to database
@@ -16,7 +16,7 @@ var db = low(adapter);
 // Initialize Express app
 const app = express()
 
-// Define a JWT secret key. This should be isolated by using env variables for security
+// Define a JWT secret key.
 const jwtSecretKey = "dsfdsfsdfdsvcsvdfgefg"
 
 // Set up CORS and JSON middlewares
@@ -30,11 +30,8 @@ app.post("/login", async (req, res) => {
     
     const { username, password } = req.body;
 
-    
     //const user = db.get("users").value().filter(user => username === user.username)
 
-    
-    
     try {
         
         // Look up the user entry in the database
@@ -142,7 +139,7 @@ app.post("/register", async (req, res) => {
 app.post('/verify', (req, res) => {
     const tokenHeaderKey = "jwt-token";
     const authToken = req.headers[tokenHeaderKey];
-    console.log(authToken)
+    
     try {
       const verified = jwt.verify(authToken, jwtSecretKey);
       if (verified) {
@@ -164,8 +161,6 @@ app.post('/verify', (req, res) => {
 app.post('/check-account', async (req, res) => {
     const { username } = req.body
 
-    console.log(req.body)
-
     //Old code that uses database.json file
     /*const user = db.get("users").value().filter(user => username === user.username)
     console.log(user)
@@ -173,6 +168,7 @@ app.post('/check-account', async (req, res) => {
         status: user.length === 1 ? "User exists" : "User does not exist", userExists: user.length === 1
     })
     */
+   
     try{
         const user = await User.findOne({ where: { username } });
         console.log(user)
@@ -265,7 +261,10 @@ app.post('/create-proposal', async (req, res) => {
 app.get('/get-proposals', async (req, res) => {
     try {
       const proposals = await Proposal.findAll({
-        include: Milestone, 
+        include: [{
+          model: Milestone,
+          include: Budget, 
+        }],
       });
       const formattedProposals = proposals.map(proposal => {
         return {
@@ -280,7 +279,14 @@ app.get('/get-proposals', async (req, res) => {
           milestones: proposal.Milestones.map(milestone => {
             return {
               name: milestone.name,
-              value: milestone.budget,
+              startDate: milestone.startDate,
+              endDate: milestone.endDate,
+              budgets: milestone.Budgets.map(budget => {
+                return {
+                  name: budget.name,
+                  value: budget.value
+                };
+              }),
             };
           })
         };
@@ -295,7 +301,7 @@ app.get('/get-proposals', async (req, res) => {
 
 
 app.post('/create-milestone', async (req, res) => {
-    const { name, ProposalId } = req.body;
+    const { name,budget, startDate, endDate, ProposalId } = req.body;
     
     try {  
         const proposal = await Proposal.findOne({ where: { id: parseInt(ProposalId, 10) } });
@@ -310,13 +316,16 @@ app.post('/create-milestone', async (req, res) => {
 
       const newMilestone = await Milestone.create({ 
         name,
+        budget,
+        startDate,
+        endDate,
         ProposalId: proposal.id
-    });
+      }, {
+        include: [Budget],
+      });
 
       await proposal.increment('milestoneCount');
       
-      
-
       res.status(201).json({ newMilestone });
     } catch (error) {
       console.error('Error creating milestone:', error);
@@ -352,7 +361,7 @@ app.get('/get-milestones', async (req, res) => {
 
 
 app.post('/create-budget', async (req, res) => {
-    const { budget,milestoneId } = req.body;
+    const { name,value,milestoneId } = req.body;
 
     try {
         
@@ -361,22 +370,40 @@ app.post('/create-budget', async (req, res) => {
         return res.status(404).json({ error: 'Milestone not found' });
         }
 
-        await milestone.update({ budget });
+        const newBudget = await Budget.create({ 
+          name,
+          value,
+          MilestoneId: milestone.id
+        });
 
+        const milestonesBudgets = await Budget.findAll({ where: { MilestoneId: milestone.id } });
+        const totalBudgetValue = milestonesBudgets.reduce((total, b) => total + parseFloat(b.value), 0);
+        await milestone.update({ budget: totalBudgetValue });
+
+        // Updating totalProposalValue for a proposal (sum of all milestone budgets)
         const proposal = await Proposal.findOne({ where: { id: milestone.ProposalId } });
         if (proposal) {
-            const currentTotalValue = proposal.totalProposalValue || 0;
-            const newTotalValue = currentTotalValue + parseFloat(budget);
-            await proposal.update({ totalProposalValue: newTotalValue });
+          const allMilestones = await Milestone.findAll({ where: { ProposalId: proposal.id } });
+          const totalProposalValue = allMilestones.reduce((total, m) => total + parseFloat(m.budget), 0);
+          await proposal.update({ totalProposalValue });
         }
 
-        res.status(201).json({ milestone });
+        res.status(201).json({ newBudget });
     } catch (error) {
         console.error('Error creating budget:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
   
+app.get('/get-budgets', async (req, res) => {
+  try {
+    const budgets = await Budget.findAll();
+    res.status(200).json({ budgets });
+  } catch (error) {
+    console.error('Error fetching milestones:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 app.delete('/delete-proposal/:id', async (req, res) => {
     const { id } = req.params;
@@ -413,7 +440,7 @@ app.get('/get-proposal/:id', async (req, res) => {
   });
 
 
-  app.post('/approve-proposal/:id', async (req, res) => {
+app.post('/approve-proposal/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -422,7 +449,6 @@ app.get('/get-proposal/:id', async (req, res) => {
             return res.status(404).json({ error: 'Proposal not found' });
         }
 
-        // Dodaj logiku za promjenu statusa na "approved"
         await proposal.update({ status: 'approved' });
 
         res.status(200).json({ proposal });
@@ -442,7 +468,6 @@ app.post('/reject-proposal/:id', async (req, res) => {
           return res.status(404).json({ error: 'Proposal not found' });
       }
 
-      // Dodaj logiku za promjenu statusa na "rejected"
       await proposal.update({ status: 'rejected' });
 
       res.status(200).json({ proposal });
@@ -451,6 +476,53 @@ app.post('/reject-proposal/:id', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
+app.post('/set-commission-values', async (req, res) => {
+    const commissionValues = req.body;
+    try {
+      const proposals = await Proposal.findAll();
+      
+      if (!proposals || proposals.length === 0) {
+        return res.status(404).json({ error: 'Proposals not found' });
+      }
+      
+      for (const proposal of proposals) {
+        await proposal.update(commissionValues);
+      }
+
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error updating commission values:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/get-commission-values', async (req, res) => {
+  
+  try {
+    const proposal = await Proposal.findOne();
+
+    if (!proposal) {
+      return res.status(404).json({ error: 'Commission values not found' });
+    }
+
+    const formattedProposals = 
+    {
+        downPaymentPercentage: proposal.downPaymentPercentage,
+        delayWithheldPercentage: proposal.delayWithheldPercentage,
+        warrantyWithheldPercentage: proposal.warrantyWithheldPercentage,
+        renoHomeownerCommissionPercentage: proposal.renoContractorCommissionPercentage,
+        renoContractorCommissionPercentage: proposal.renoContractorCommissionPercentage,
+    };
+    
+    res.status(200).json({ commissionValues: formattedProposals });
+  } catch (error) {
+    console.error('Error fetching commission values:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 sequelize.sync({ force: false }).then(async () => {
     //await createInitialUsers();

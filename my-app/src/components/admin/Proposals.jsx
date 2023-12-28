@@ -57,7 +57,7 @@ export default function Proposals() {
     { field: 'startDate', headerName: 'StartDate', width: 130 },
     { field: 'endDate', headerName: 'EndDate', width: 130 },
     { field: 'milestoneCount', headerName: 'Milestones', width: 130},
-    { field: 'totalProposalValue', headerName: 'Total Value', width: 140},
+    { field: 'totalProposalValue', headerName: 'Total Proposal Value', width: 160},
     { field: 'status', headerName: 'Status', width: 110},
     {
       field: 'actions',
@@ -88,7 +88,7 @@ export default function Proposals() {
     <br></br>
     <br></br>
 
-    <div style={{height: 400, width: '100%' }}>
+    <div style={{height: 400, width: '100%'}}>
       <DataGrid
         rows={proposals}
         columns={columns}
@@ -98,7 +98,7 @@ export default function Proposals() {
           },
         }}
         pageSizeOptions={[5, 10]}
-        checkboxSelection
+        
       />
     </div>
     </>

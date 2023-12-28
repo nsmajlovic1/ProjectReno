@@ -1,15 +1,13 @@
-// CommissionSettings.js
-
 import { useState } from 'react';
 import styled from 'styled-components';
 
-const CommissionSettings = ({ onSubmit }) => {
+const CommissionSettings = () => {
   const [commissionValues, setCommissionValues] = useState({
-    downPayment: 0,
-    delayWithheld: 0,
-    warrantyWithheld: 0,
-    renoHomeownerCommission: 0,
-    renoContractorCommission: 0,
+    downPaymentPercentage: 0,
+    delayWithheldPercentage: 0,
+    warrantyWithheldPercentage: 0,
+    renoHomeownerCommissionPercentage: 0,
+    renoContractorCommissionPercentage: 0,
   });
 
   const handleInputChange = (e) => {
@@ -17,9 +15,28 @@ const CommissionSettings = ({ onSubmit }) => {
     setCommissionValues({ ...commissionValues, [name]: parseFloat(value) });
   };
 
-  const handleSubmit = () => {
-    // Dodaj validaciju vrednosti pre slanja na server
-    onSubmit(commissionValues);
+  const handleSubmit = async () => {
+    const isValid = Object.values(commissionValues).every(value => !isNaN(value) && value >= 0 && value <= 100);
+    console.log('Submitting Commission Values:', commissionValues);
+    if (isValid) {
+        try {
+            const response = await fetch('http://localhost:3080/set-commission-values', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(commissionValues),
+            });
+
+            
+            const data = await response.json();
+            console.log('Response from Server:', data);
+            } catch (error) {
+            console.error('Error updating commission values:', error);
+        }
+    } else {
+        alert('Invalid input. Please enter valid percentages between 0 and 100.');
+    }
   };
 
   return (
@@ -27,25 +44,25 @@ const CommissionSettings = ({ onSubmit }) => {
       <h2>Commission Settings</h2>
       <CommissionInput>
         <label>Down Payment (%)</label>
-        <input type="number" name="downPayment" value={commissionValues.downPayment} onChange={handleInputChange} />
+        <input type="number" name="downPaymentPercentage" value={commissionValues.downPaymentPercentage} onChange={handleInputChange} />
       </CommissionInput>
       <CommissionInput>
         <label>Delay Withheld (%)</label>
-        <input type="number" name="delayWithheld" value={commissionValues.delayWithheld} onChange={handleInputChange} />
+        <input type="number" name="delayWithheldPercentage" value={commissionValues.delayWithheldPercentage} onChange={handleInputChange} />
       </CommissionInput>
       <CommissionInput>
         <label>Warranty Withheld (%)</label>
-        <input type="number" name="warrantyWithheld" value={commissionValues.warrantyWithheld} onChange={handleInputChange} />
+        <input type="number" name="warrantyWithheldPercentage" value={commissionValues.warrantyWithheldPercentage} onChange={handleInputChange} />
       </CommissionInput>
       <CommissionInput>
         <label>Reno Homeowner Commission (%)</label>
-        <input type="number" name="renoHomeownerCommission" value={commissionValues.renoHomeownerCommission} onChange={handleInputChange} />
+        <input type="number" name="renoHomeownerCommissionPercentage" value={commissionValues.renoHomeownerCommissionPercentage} onChange={handleInputChange} />
       </CommissionInput>
       <CommissionInput>
         <label>Reno Contractor Commission (%)</label>
-        <input type="number" name="renoContractorCommission" value={commissionValues.renoContractorCommission} onChange={handleInputChange} />
+        <input type="number" name="renoContractorCommissionPercentage" value={commissionValues.renoContractorCommissionPercentage} onChange={handleInputChange} />
       </CommissionInput>
-      <Button onClick={handleSubmit}>Save</Button>
+      <Button onClick={handleSubmit}>Submit</Button>
     </CommissionSettingsContainer>
   );
 };

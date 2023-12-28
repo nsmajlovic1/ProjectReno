@@ -62,7 +62,7 @@ const AddBudget = () => {
                     },
                     body: JSON.stringify({
                         name: budgetname,
-                        budget: budgetvalue,
+                        value: budgetvalue,
                         milestoneId
                     }),
                 });
@@ -98,7 +98,7 @@ const AddBudget = () => {
         const [milestones, setMilestones] = useState([]);
     
         useEffect(() => {
-            // Fetch dostupne Milestones i postavi ih u stanje
+            // Fetch available milestones for that proposal
             const fetchMilestones = async () => {
                 try {
                     const response = await fetch(`http://localhost:3080/get-milestones/${proposalId}`);

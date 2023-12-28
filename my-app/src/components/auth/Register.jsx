@@ -84,7 +84,7 @@ const Register = (props) => {
     })
 }
 
-// Log in a user using username and password
+// Register a new user
 const registerNewUser = () => {
     fetch("http://localhost:3080/register", {
         method: "POST",
