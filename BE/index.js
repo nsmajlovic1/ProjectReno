@@ -24,6 +24,8 @@ app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const excel = require('exceljs');
+const path = require('path');
 
 // The auth endpoint that logs a user based on an existing record
 app.post("/login", async (req, res) => {
@@ -218,7 +220,8 @@ app.post('/get-role', async (req, res) => {
       // Access Denied
       res.status(401).json({ status: "invalid auth", message: "error" });
     }
-  });
+});
+
   
 app.get('/stats', async (req, res) => {
     try {
@@ -231,6 +234,7 @@ app.get('/stats', async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
 
 app.post('/create-proposal', async (req, res) => {
     const { name, description, startDate, endDate, milestoneCount} = req.body;
@@ -255,7 +259,7 @@ app.post('/create-proposal', async (req, res) => {
         console.error('Error creating proposal:', error);
         res.status(500).json({ error: 'Internal Server Error' });
         }
-  });
+});
 
 
 app.get('/get-proposals', async (req, res) => {
@@ -296,9 +300,8 @@ app.get('/get-proposals', async (req, res) => {
       console.error('Error fetching proposals:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
-  });
+});
   
-
 
 app.post('/create-milestone', async (req, res) => {
     const { name,budget, startDate, endDate, ProposalId } = req.body;
@@ -331,7 +334,7 @@ app.post('/create-milestone', async (req, res) => {
       console.error('Error creating milestone:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
-  });
+});
   
   
 app.get('/get-milestones', async (req, res) => {
@@ -342,10 +345,10 @@ app.get('/get-milestones', async (req, res) => {
       console.error('Error fetching milestones:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
-  });
+});
 
 
-  app.get('/get-milestones/:proposalId', async (req, res) => {
+app.get('/get-milestones/:proposalId', async (req, res) => {
     const { proposalId } = req.params;
 
     try {
@@ -394,7 +397,8 @@ app.post('/create-budget', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-  
+
+
 app.get('/get-budgets', async (req, res) => {
   try {
     const budgets = await Budget.findAll();
@@ -404,6 +408,7 @@ app.get('/get-budgets', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 app.delete('/delete-proposal/:id', async (req, res) => {
     const { id } = req.params;
@@ -437,7 +442,7 @@ app.get('/get-proposal/:id', async (req, res) => {
       console.error('Error fetching proposal:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
-  });
+});
 
 
 app.post('/approve-proposal/:id', async (req, res) => {
@@ -498,6 +503,7 @@ app.post('/set-commission-values', async (req, res) => {
     }
 });
 
+
 app.get('/get-commission-values', async (req, res) => {
   
   try {
@@ -523,6 +529,57 @@ app.get('/get-commission-values', async (req, res) => {
   }
 });
 
+
+app.get('/generate-report', async (req, res) => {
+  try {
+    const proposals = await Proposal.findAll(); 
+
+    const workbook = new excel.Workbook();
+    const worksheet = workbook.addWorksheet('Proposals');
+
+    worksheet.columns = [
+      { header: 'ID', key: 'id', width: 5 },
+      { header: 'Name', key: 'name', width: 20 },
+      { header: 'Description', key: 'description', width: 30 },
+      { header: 'Start Date', key: 'startDate', width: 15 },
+      { header: 'End Date', key: 'endDate', width: 15 },
+      { header: 'Milestones', key: 'milestoneCount', width: 10 },
+      { header: 'Total Proposal Value', key: 'totalProposalValue', width: 20 },
+      { header: 'Status', key: 'status', width: 15 },
+    ];
+
+    proposals.forEach((proposal) => {
+      worksheet.addRow({
+        id: proposal.id,
+        name: proposal.name,
+        description: proposal.description,
+        startDate: proposal.startDate,
+        endDate: proposal.endDate,
+        milestoneCount: proposal.milestoneCount,
+        totalProposalValue: proposal.totalProposalValue,
+        status: proposal.status,
+      });
+    });
+
+    /*const desktopPath = require('path').join(require('os').homedir(), 'Desktop');
+    const filePath = path.join(desktopPath, 'proposals_report.xlsx');
+    console.log(filePath)
+    
+    await workbook.xlsx.writeFile(filePath);
+    console.log('File successfully written:', filePath);
+    */
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=proposals_report.xlsx');
+    res.send(buffer);
+
+    
+  } catch (error) {
+    console.error('Error generating report:', error);
+    res.status(500).json({ error: 'Error generating report' });
+  }
+});
 
 sequelize.sync({ force: false }).then(async () => {
     //await createInitialUsers();

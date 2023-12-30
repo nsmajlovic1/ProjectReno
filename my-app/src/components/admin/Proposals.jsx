@@ -10,6 +10,7 @@ export default function Proposals() {
   const navigate = useNavigate()
   const [proposals, setProposals] = useState([]);
   const [nextProposalId, setNextProposalId] = useState(0);
+  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     const fetchProposals = async () => {
@@ -47,8 +48,32 @@ export default function Proposals() {
     }
   };
   
-  
-  
+
+  const generateReport = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch('http://localhost:3080/generate-report');
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'proposals_report.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        console.error('Error generating report:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error generating report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
@@ -77,11 +102,11 @@ export default function Proposals() {
 
 
   return (<>
-  <AdminHeaders>
-    <h2>Proposals</h2>
-    <PrimaryButton onClick={() => navigate(`/admin/create-proposal/${nextProposalId}`)}>
-        Create
-    </PrimaryButton>
+    <AdminHeaders>
+      <h2>Proposals</h2>
+      <PrimaryButton onClick={() => navigate(`/admin/create-proposal/${nextProposalId}`)}>
+          Create
+      </PrimaryButton>
     </AdminHeaders>
     <Outlet/> 
     <br></br>
@@ -100,6 +125,12 @@ export default function Proposals() {
         pageSizeOptions={[5, 10]}
         
       />
+    </div>
+
+    <div>
+      <GenerateButton onClick={generateReport} disabled={loading}>
+        {loading ? 'Generating...' : 'Generate Report'}
+      </GenerateButton>
     </div>
     </>
   );
@@ -125,3 +156,18 @@ const Delete = styled.button`
 const View = styled.button`
     background-color: rgb(114,225,40);
 `
+
+const GenerateButton = styled.button`
+  padding: 9px 12px;
+  border-radius: 5px;
+  font-weight: 400;
+  letter-spacing: 1.15px;
+  background-color: #4b70e2;
+  color: #f9f9f9;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  position: absolute;
+  right: 6.7%;
+  top:85%;
+`;
