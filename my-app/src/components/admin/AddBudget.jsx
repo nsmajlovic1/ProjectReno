@@ -1,7 +1,8 @@
 import styled from "styled-components";
 import { useState, useEffect } from "react";
-import { SecondaryButton, ThirdButton, FourthButton  } from "./CommonStyled";
+import { ThirdButton, FourthButton  } from "./CommonStyled";
 import { useNavigate, useParams } from "react-router-dom"
+import EditProposal from "./EditProposal";
 
 const AddBudget = () => {
     const [budgetname, setBudgetName] = useState("")
@@ -83,12 +84,6 @@ const AddBudget = () => {
         navigate(`/admin/create-milestone/${proposalId}`)
         
     }
-
-    const onButtonClick3 = async (event) => {
-        event.preventDefault();
-        navigate('/admin/proposals');
-    }
-    
     
     const onMilestoneChange = (milestoneId) => {
         setMilestoneId(milestoneId);
@@ -146,7 +141,7 @@ const AddBudget = () => {
             <FourthButton onClick={onButtonClick1}>+ Add Budget</FourthButton>
             <label className="successLabel">{successMessage}</label>
             <ThirdButton onClick={onButtonClick2}>Previous step</ThirdButton>
-            <SecondaryButton onClick={onButtonClick3}>Submit</SecondaryButton>
+            <EditProposal></EditProposal>
         </StyledForm>
     </StyledAddBudget> 
     );

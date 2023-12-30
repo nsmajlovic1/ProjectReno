@@ -2,6 +2,7 @@ import { useState } from 'react';
 import styled from 'styled-components';
 
 const CommissionSettings = () => {
+  const [successMessage, setSuccessMessage] = useState("");
   const [commissionValues, setCommissionValues] = useState({
     downPaymentPercentage: 0,
     delayWithheldPercentage: 0,
@@ -16,6 +17,7 @@ const CommissionSettings = () => {
   };
 
   const handleSubmit = async () => {
+    setSuccessMessage("");
     const isValid = Object.values(commissionValues).every(value => !isNaN(value) && value >= 0 && value <= 100);
     console.log('Submitting Commission Values:', commissionValues);
     if (isValid) {
@@ -31,6 +33,7 @@ const CommissionSettings = () => {
             
             const data = await response.json();
             console.log('Response from Server:', data);
+            setSuccessMessage("Commission values successfully added!");
             } catch (error) {
             console.error('Error updating commission values:', error);
         }
@@ -63,6 +66,7 @@ const CommissionSettings = () => {
         <input type="number" name="renoContractorCommissionPercentage" value={commissionValues.renoContractorCommissionPercentage} onChange={handleInputChange} />
       </CommissionInput>
       <Button onClick={handleSubmit}>Submit</Button>
+      <label className="successLabel">{successMessage}</label>
     </CommissionSettingsContainer>
   );
 };
@@ -80,6 +84,10 @@ const CommissionSettingsContainer = styled.div`
     font-size: 1.5rem;
     margin-bottom: 1rem;
   }
+  .successLabel {
+        color: #04b604;
+        font-size: 12px;
+    }
 `;
 
 const CommissionInput = styled.div`

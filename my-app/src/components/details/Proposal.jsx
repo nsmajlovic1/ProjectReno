@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { DataGrid } from '@mui/x-data-grid';
 
 const Proposal = () => {
     const { id } = useParams();
     const [proposal, setProposal] = useState([])
     const [userRole, setUserRole] = useState('');
+    const [milestones, setMilestones] = useState([]);
     const navigate = useNavigate()
     
     useEffect(() => {
-        const fetchProposals = async () => {
+        const fetchProposal = async () => {
           try {
             const response = await fetch(`http://localhost:3080/get-proposal/${id}`);
             const data = await response.json();
@@ -20,7 +22,20 @@ const Proposal = () => {
           }
         };
     
-        fetchProposals();
+        fetchProposal();
+
+        const fetchMilestones = async () => {
+            try {
+              const response = await fetch(`http://localhost:3080/get-milestones/${id}`);
+              const data = await response.json();
+              setMilestones(data.milestones);
+            } catch (error) {
+              console.error('Error fetching proposals:', error);
+            }
+          };
+      
+          fetchMilestones();
+
       }, [userRole,id]);
 
      
@@ -74,6 +89,60 @@ const Proposal = () => {
         return netPayment 
     }
 
+    function calculateHomeownerDownPayment(proposal) {
+        const homeOwnerDownPayment = ((proposal.totalProposalValue * proposal.downPaymentPercentage) / 100) + ((proposal.totalProposalValue * proposal.renoHomeownerCommissionPercentage) / 100);
+        return homeOwnerDownPayment
+      }
+      
+    function calculateContractorDownPayment(proposal) {
+        const contractorDownPayment = ((proposal.totalProposalValue * proposal.downPaymentPercentage) / 100)
+        return contractorDownPayment 
+    }
+
+    const columns = [
+    { field: 'name', headerName: 'Milestone Name', width: 120},
+    {
+        field: 'budget',
+        headerName: 'Milestone Value (AED)',
+        type: 'number',
+        width: 200,
+    },
+    {
+        field: 'homeownerPays',
+        headerName: 'Homeowner Pays',
+        type: 'number',
+        width: 180,
+        valueGetter: (params) => {
+            const milestoneValue = params.row.budget;
+            const downPaymentPercentage = proposal.downPaymentPercentage / 100;
+            const homeownerPays = milestoneValue - milestoneValue * downPaymentPercentage;
+            return homeownerPays;
+        },
+    },
+    {
+        field: 'contractorReceives',
+        headerName: 'Contractor Receives',
+        type: 'number',
+        width: 180,
+        valueGetter: (params) => {
+            const milestoneValue = params.row.budget;
+            const downPaymentPercentage = proposal.downPaymentPercentage / 100;
+            const delayWithheldAmountPercentage = proposal.delayWithheldPercentage / 100;
+            const warrantyWithheldAmountPercentage = proposal.warrantyWithheldPercentage / 100;
+            const renoContractorCommissionPercentage = proposal.renoContractorCommissionPercentage / 100;
+
+            const remainingMilestoneValue = milestoneValue - milestoneValue * downPaymentPercentage;
+            const contractorReceives =
+                remainingMilestoneValue -
+                delayWithheldAmountPercentage * milestoneValue -
+                warrantyWithheldAmountPercentage * milestoneValue -
+                renoContractorCommissionPercentage * milestoneValue;
+
+            return contractorReceives;
+        },
+    },
+];
+
     return ( 
     <StyledProposal>
         <ProposalContainer>
@@ -85,7 +154,27 @@ const Proposal = () => {
                 <p><span>Number of Milestones: </span>{proposal.milestoneCount}</p>
                 <Value>Total Proposal Value: {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(proposal.totalProposalValue)}</Value>
                 <Value>Commission Amount: {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(calculateCommissionAmount(proposal))}</Value>
-                <Value>Net Payment to Creator: {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(calculateNetPayment(proposal))}</Value>                
+                <Value>Net Payment to Creator: {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(calculateNetPayment(proposal))}</Value>
+                <Value>Down payment (Homeowner): {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(calculateHomeownerDownPayment(proposal))}</Value>
+                <Value>Down payment (Contractor): {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(calculateContractorDownPayment(proposal))}</Value>                  
+                
+                
+                
+                <div style={{height: 400, width: '80%'}}>
+                    <DataGrid
+                        rows={milestones}
+                        columns={columns}
+                        initialState={{
+                        pagination: {
+                            paginationModel: { page: 0, pageSize: 5 },
+                        },
+                        }}
+                        pageSizeOptions={[5, 10]}
+                    />
+                </div>
+                
+                
+                
                 { userRole === 'superadmin' && proposal.status === 'pending' ? (
                     <>
                         <RejectButton onClick={handleReject}>
@@ -132,7 +221,7 @@ const Value = styled.div`
 `;
 
 const ProposalContainer = styled.div`
-  max-width: 500px;
+  max-width: 1000px;
   width: 100%;
   height: auto;
   display: flex;
