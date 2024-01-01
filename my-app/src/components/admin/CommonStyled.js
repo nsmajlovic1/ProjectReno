@@ -15,8 +15,7 @@ export const PrimaryButton = styled.button`
   border: none;
   outline: none;
   cursor: pointer;
-  position: absolute;
-  right: 6.7%;
+  margin-top: 10px;
 `;
 
 export const SecondaryButton = styled.button`

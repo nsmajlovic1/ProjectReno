@@ -168,6 +168,6 @@ const GenerateButton = styled.button`
   outline: none;
   cursor: pointer;
   position: absolute;
-  right: 6.7%;
-  top:85%;
+  right: 3.2%;
+  top:87%;
 `;

@@ -100,7 +100,7 @@ const Proposal = () => {
     }
 
     const columns = [
-    { field: 'name', headerName: 'Milestone Name', width: 120},
+    { field: 'name', headerName: 'Milestone Name', width: 120, align: 'center'},
     {
         field: 'budget',
         headerName: 'Milestone Value (AED)',
@@ -160,7 +160,7 @@ const Proposal = () => {
                 
                 
                 
-                <div style={{height: 400, width: '80%'}}>
+                <div style={{height: 400, width: '80%', border: '2px solid black', borderRadius: '5px'}}>
                     <DataGrid
                         rows={milestones}
                         columns={columns}

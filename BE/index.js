@@ -410,6 +410,21 @@ app.get('/get-budgets', async (req, res) => {
 });
 
 
+app.get('/get-budgets/:milestoneId', async (req, res) => {
+  const { proposalId } = req.params;
+
+  try {
+      const milestones = await Milestone.findAll({
+          where: { ProposalId: parseInt(proposalId, 10) },
+      });
+      res.status(200).json({ milestones });
+  } catch (error) {
+      console.error('Error fetching milestones:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 app.delete('/delete-proposal/:id', async (req, res) => {
     const { id } = req.params;
   
@@ -480,6 +495,39 @@ app.post('/reject-proposal/:id', async (req, res) => {
       console.error('Error rejecting proposal:', error);
       res.status(500).json({ error: 'Internal Server Error' });
   }
+});
+
+
+app.put('/edit-proposal/:proposalId', async (req, res) => {
+    const proposalId = req.params.proposalId;
+    const { name, description, startDate, endDate, milestones } = req.body;
+    try {
+      await Proposal.update(
+          { name, description, startDate, endDate },
+          { where: { id: proposalId } }
+    )
+
+    for (const milestoneData of milestones) {
+      const { id, name, budget, startDate, endDate } = milestoneData;
+      if (id) {
+          // If milestone has an id, update it
+          await Milestone.update(
+              { name, budget, startDate, endDate },
+              { where: { id: id } }
+          );
+      } else {
+          // If milestone does not have an id, create a new one
+          await Milestone.create(
+              { name, budget, startDate, endDate, ProposalId: proposalId }
+          );
+      }
+    }
+      
+    res.json({ message: 'Proposal and milestones updated successfully' });
+  } catch(error) {
+        console.error('Error updating proposal:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      };
 });
 
 

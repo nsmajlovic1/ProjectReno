@@ -4,81 +4,205 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { SecondaryButton, FourthButton } from './CommonStyled';
 import { useNavigate } from "react-router-dom"
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
-export default function EditProposal() {
+import { format } from "date-fns";
+export default function EditProposal({propId}) {
     const [projectname, setProjectName] = useState("")
     const [description, setDescription] = useState("")
+    const [projectstartDate, setprojectStartDate] = useState(null);
+    const [projectendDate, setProjectEndDate] = useState(null);
     const [uploadimg, setUploadImg] = useState("")
-    const [projectnameError, setProjectnameError] = useState("")
+    const [projectnameError, setProjectNameError] = useState("")
     const [descriptionError, setDescriptionError] = useState("")
-    const [startDate, setStartDate] = useState(null);
-    const [endDate, setEndDate] = useState(null);
-    const [startDateError, setStartDateError] = useState("");
-    const [endDateError, setEndDateError] = useState("");
+    const [projectstartDateError, setProjectStartDateError] = useState("");
+    const [projectendDateError, setProjectEndDateError] = useState("");
     const navigate = useNavigate()
+    
+    const [milestones, setMilestones] = useState([]);
+    const [milestoneNameErrors, setMilestoneNameErrors] = useState([]);
+    const [milestoneStartDateErrors, setMilestoneStartDateErrors] = useState([]);
+    const [milestoneEndDateErrors, setMilestoneEndDateErrors] = useState([]);
+   /* 
+    const [budgetname, setBudgetName] = useState("")
+    const [budgetvalue, setBudgetValue] = useState("")
+    const [budgetNameError, setBudgetNameError] = useState("")
+    const [budgetValueError, setBudgetValueError] = useState("")
+    const [milestoneChoiceError, setMilestoneChoiceError] = useState("")
+    const [milestoneId, setMilestoneId] = useState(null);
+    const navigate = useNavigate()
+
+*/
+    useEffect(() => {
+        const fetchData = async () => {
+          try {
+            const response = await fetch(`http://localhost:3080/get-proposal/${propId}`);
+            const data = await response.json();
+            setProjectName(data.proposal.name);
+            setDescription(data.proposal.description)
+            setprojectStartDate(new Date(data.proposal.startDate));
+            setProjectEndDate(new Date(data.proposal.endDate));
+            
+            const milestonesResponse = await fetch(`http://localhost:3080/get-milestones/${propId}`);
+            const milestonesData = await milestonesResponse.json();
+            setMilestones(milestonesData.milestones);
+            
+            /*
+            const budgetsResponse = await fetch(`http://localhost:3080/get-budgets/${milestoneId}`);
+            const budgetsData = await budgetsResponse.json();
+            setBudgets(budgetsData.budgets);*/
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+        };
+      
+        fetchData();
+      }, [propId]);
+
+    
+    const handleMilestoneNameChange = (event, index) => {
+        const newMilestones = [...milestones];
+        newMilestones[index].name = event.target.value;
+        setMilestones(newMilestones);
+    };
+    
+    const handleMilestoneStartDateChange = (date, index) => {
+        const newMilestones = [...milestones];
+        newMilestones[index].startDate = date;
+        setMilestones(newMilestones);
+    };
+    
+    const handleMilestoneEndDateChange = (date, index) => {
+        const newMilestones = [...milestones];
+        newMilestones[index].endDate = date;
+        setMilestones(newMilestones);
+    };
+    
 
     const onButtonClick = async (event) => {
         // Prevent the default form submission behavior
         event.preventDefault(); 
 
         // Set initial error values to empty
-        setProjectnameError("")
+        setProjectNameError("")
         setDescriptionError("")
-        setStartDateError("")
-        setEndDateError("")
- 
+        setProjectStartDateError("")
+        setProjectEndDateError("")
+        setMilestoneNameErrors(Array(milestones.length).fill(""));
+        setMilestoneStartDateErrors(Array(milestones.length).fill(""));
+        setMilestoneEndDateErrors(Array(milestones.length).fill(""));
+        
         // Check if the user has entered both fields correctly
         if ("" === projectname) {
-            setProjectnameError("Please enter a Project name")
+            setProjectNameError("Please enter a Project name")
             return
         }
         else if ("" === description) {
             setDescriptionError("Please enter a Descrption")
             return
         }
-        else if (!startDate) {
-            setStartDateError("Please select start date");
+        else if (!projectstartDate) {
+            setProjectStartDateError("Please select start date");
             return;
         } 
-        else if (!endDate) {
-            setEndDateError("Please select end date");
+        else if (!projectendDate) {
+            setProjectEndDateError("Please select end date");
             return;
         } 
-        if (startDate && endDate && startDate > endDate) {
-            setStartDateError("Start date cannot be after end date");
+        else if (projectstartDate && projectendDate && projectstartDate > projectendDate) {
+            setProjectStartDateError("Start date cannot be after end date");
             return;
         }
-        else{
-            try {
-                const response = await fetch('http://localhost:3080/edit-proposal', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        name: projectname,
-                        description: description,
-                        startDate: startDate,
-                        endDate: endDate
-                    }),
+
+        for (let i = 0; i < milestones.length; i++) {
+            const milestone = milestones[i];
+            const formattedStartDate = milestone.startDate ? format(new Date(milestone.startDate), "yyyy-MM-dd") : null;
+            const formattedEndDate = milestone.endDate ? format(new Date(milestone.endDate), "yyyy-MM-dd") : null;
+            if ("" === milestone.name) {
+                setMilestoneNameErrors((prevErrors) => {
+                    const newErrors = [...prevErrors];
+                    newErrors[i] = `Please enter a Milestone ${i + 1} name`;
+                    return newErrors;
                 });
-        
-                const data = await response.json();
-                console.log('Proposal edited:', data);
-        
-                navigate('/admin/proposals');
-            } catch (error) {
-                console.error('Error editing proposal:', error);
+                return;
             }
-        
+            if (!/^[\w-]{1,15}$/.test(milestone.name)) {
+                setMilestoneNameErrors((prevErrors) => {
+                    const newErrors = [...prevErrors];
+                    newErrors[i] = `Milestone ${i + 1} name has more than 15 characters`;
+                    return newErrors;
+                });
+                return;
+            }
+            if (!formattedStartDate) {
+                setMilestoneStartDateErrors((prevErrors) => {
+                    const newErrors = [...prevErrors];
+                    newErrors[i] = `Please select Milestone ${i + 1} start date`;
+                    return newErrors;
+                });
+                return;
+            }
+            if (!formattedEndDate) {
+                setMilestoneEndDateErrors((prevErrors) => {
+                    const newErrors = [...prevErrors];
+                    newErrors[i] = `Please select Milestone ${i + 1} end date`;
+                    return newErrors;
+                });
+                return;
+            }
+            if (formattedStartDate > formattedEndDate) {
+                setMilestoneStartDateErrors((prevErrors) => {
+                    const newErrors = [...prevErrors];
+                    newErrors[i] = `Milestone ${i + 1} start date cannot be after end date`;
+                    return newErrors;
+                });
+                return;
+            }else{
+            setMilestoneStartDateErrors((prevErrors) => {
+                const newErrors = [...prevErrors];
+                newErrors[i] = "";
+                return newErrors;
+            });
         }
+        }
+
+        
+        
+        try {
+            const response = await fetch(`http://localhost:3080/edit-proposal/${propId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: projectname,
+                    description: description,
+                    startDate: projectstartDate,
+                    endDate: projectendDate,
+                    milestones: milestones.map((milestone) => ({
+                        id: milestone.id, 
+                        name: milestone.name,
+                        budget: milestone.budget, 
+                        startDate: milestone.startDate,
+                        endDate: milestone.endDate
+                    })),
+                }),
+            });
+    
+            const data = await response.json();
+            console.log('Proposal edited:', data);
+            console.log(propId)
+            navigate('/admin/proposals');
+        } catch (error) {
+            console.error('Error editing proposal:', error);
+        }
+        
     }
+    
 
     const handleImageUpload = (e) =>{
         const file = e.target.files[0];
@@ -125,34 +249,36 @@ export default function EditProposal() {
                 <input 
                     type = "text" 
                     placeholder = "Project Name"
+                    value={projectname}
                     onChange={ev => setProjectName(ev.target.value)}>    
                 </input>
                 <label className="errorLabel">{projectnameError}</label>
                 <input 
                     type = "text" 
                     placeholder = "Description"
+                    value={description}
                     onChange={ev => setDescription(ev.target.value)}>    
                 </input>
                 <label className="errorLabel">{descriptionError}</label>
                 <DatePickerWrapper>
                     <DatePicker
-                        selected={startDate}
-                        onChange={(date) => setStartDate(date)}
+                        selected={projectstartDate}
+                        onChange={(date) => setprojectStartDate(date)}
                         selectsStart
-                        startDate={startDate}
-                        endDate={endDate}
+                        startDate={projectstartDate}
+                        endDate={projectendDate}
                         placeholderText="Start Date"
                     />
-                    <label className="errorLabel">{startDateError}</label>
+                    <label className="errorLabel">{projectstartDateError}</label>
                     <DatePicker
-                        selected={endDate}
-                        onChange={(date) => setEndDate(date)}
+                        selected={projectendDate}
+                        onChange={(date) => setProjectEndDate(date)}
                         selectsEnd
-                        startDate={startDate}
-                        endDate={endDate}
+                        startDate={projectstartDate}
+                        endDate={projectendDate}
                         placeholderText="End Date"
                     />
-                    <label className="errorLabel">{endDateError}</label>
+                    <label className="errorLabel">{projectendDateError}</label>
                 </DatePickerWrapper>
                 
                 <input 
@@ -160,6 +286,40 @@ export default function EditProposal() {
                     accept="image/" 
                     onChange={handleImageUpload}>
                 </input>
+
+                {milestones.map((milestone, index) => (
+                    <div key={index}>
+                        <h3>Milestone {index + 1}</h3>
+                        <input
+                            type="text"
+                            placeholder={`Milestone ${index + 1} Name`}
+                            value={milestone.name}
+                            onChange={(ev) => handleMilestoneNameChange(ev, index)}
+                        />
+                        <label className="errorLabel">{milestoneNameErrors[index]}</label>
+                        <DatePickerWrapper>
+                            <DatePicker
+                                selected={milestone.startDate ? new Date(milestone.startDate) : null}
+                                onChange={(date) => handleMilestoneStartDateChange(date, index)}
+                                selectsStart
+                                startDate={milestone.startDate ? new Date(milestone.startDate) : null}
+                                endDate={milestone.endDate ? new Date(milestone.endDate) : null}
+                                placeholderText={`Milestone ${index + 1} Start Date`}
+                            />
+                            <label className="errorLabel">{milestoneStartDateErrors[index]}</label>
+                            <DatePicker
+                                selected={milestone.endDate ? new Date(milestone.endDate) : null}
+                                onChange={(date) => handleMilestoneEndDateChange(date, index)}
+                                selectsEnd
+                                startDate={milestone.startDate ? new Date(milestone.startDate) : null}
+                                endDate={milestone.endDate ? new Date(milestone.endDate) : null}
+                                placeholderText={`Milestone ${index + 1} End Date`}
+                            />
+                            <label className="errorLabel">{milestoneEndDateErrors[index]}</label>
+                        </DatePickerWrapper>
+                    </div>
+                ))}
+
                 <FourthButton onClick={onButtonClick}>Submit</FourthButton>
             </StyledForm>
             <ImagePreview>
@@ -167,9 +327,9 @@ export default function EditProposal() {
                 <>
                 <img src={uploadimg} alt="upload"></img>
                 </> 
-            ) : (
-            <p>Image preview</p>
-            )}
+                ) : (
+                <p>Image preview</p>
+                )}
             </ImagePreview>
         </StyledEditProposal>
         </DialogContent>
@@ -185,7 +345,7 @@ export default function EditProposal() {
 const StyledForm = styled.form`
   display: flex;
   flex-direction: column;
-  max-width: 300px;
+  max-width: 230px;
   margin-top: 1.5rem;
   
 
@@ -204,7 +364,12 @@ const StyledForm = styled.form`
   h3{
     margin-bottom: 0.5rem;
   }
-
+  > div {
+    h3 {
+      margin-bottom: 0.5rem;
+      margin-top: 2rem
+    }
+  }
   .errorLabel {
         color: red;
         font-size: 12px;
@@ -221,6 +386,7 @@ const ImagePreview = styled.div`
   padding: 2rem;
   border: 1px solid rgb(183, 183, 183);
   max-width: 300px;
+  max-height: 300px;
   width: 100%;
   display: flex;
   align-items: center;
@@ -229,6 +395,7 @@ const ImagePreview = styled.div`
 
   img {
     max-width: 100%;
+    max-height: 100%;
   }
 `;
 

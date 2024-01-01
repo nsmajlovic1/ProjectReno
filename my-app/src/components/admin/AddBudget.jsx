@@ -141,7 +141,7 @@ const AddBudget = () => {
             <FourthButton onClick={onButtonClick1}>+ Add Budget</FourthButton>
             <label className="successLabel">{successMessage}</label>
             <ThirdButton onClick={onButtonClick2}>Previous step</ThirdButton>
-            <EditProposal></EditProposal>
+            <EditProposal propId = {proposalId}></EditProposal>
         </StyledForm>
     </StyledAddBudget> 
     );
