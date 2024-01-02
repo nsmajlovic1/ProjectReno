@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom"
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
+
 export default function EditProposal({propId}) {
     const [projectname, setProjectName] = useState("")
     const [description, setDescription] = useState("")
@@ -28,6 +29,10 @@ export default function EditProposal({propId}) {
     const [milestoneNameErrors, setMilestoneNameErrors] = useState([]);
     const [milestoneStartDateErrors, setMilestoneStartDateErrors] = useState([]);
     const [milestoneEndDateErrors, setMilestoneEndDateErrors] = useState([]);
+
+    const [budgets, setBudgets] = useState([]);
+    const [budgetNameErrors, setBudgetNameErrors] = useState([]);
+    const [budgetValueErrors, setBudgetValueErrors] = useState([]);
    /* 
     const [budgetname, setBudgetName] = useState("")
     const [budgetvalue, setBudgetValue] = useState("")
@@ -53,10 +58,19 @@ export default function EditProposal({propId}) {
             const milestonesData = await milestonesResponse.json();
             setMilestones(milestonesData.milestones);
             
-            /*
-            const budgetsResponse = await fetch(`http://localhost:3080/get-budgets/${milestoneId}`);
-            const budgetsData = await budgetsResponse.json();
-            setBudgets(budgetsData.budgets);*/
+            const budgetsPromises = milestonesData.milestones.map(async (milestone) => {
+                const budgetsResponse = await fetch(`http://localhost:3080/get-budgets/${milestone.id}`);
+                const budgetsData = await budgetsResponse.json();
+                return budgetsData.budgets;
+            });
+
+            // Resolve all promises
+            const budgets = await Promise.all(budgetsPromises);
+
+            // Flatten the array of budgets
+            const flattenedBudgets = budgets.flat();
+            setBudgets(flattenedBudgets);
+            console.log(budgets)
           } catch (error) {
             console.error('Error fetching data:', error);
           }
@@ -83,6 +97,20 @@ export default function EditProposal({propId}) {
         newMilestones[index].endDate = date;
         setMilestones(newMilestones);
     };
+
+    const handleBudgetNameChange = (event, milestoneIndex, budgetIndex) => {
+        const newBudgets = [...budgets];
+        const milestoneBudgets = newBudgets.filter((budget) => budget.MilestoneId === milestones[milestoneIndex].id);
+        milestoneBudgets[budgetIndex].name = event.target.value;
+        setBudgets(newBudgets);
+    };
+
+    const handleBudgetValueChange = (event, milestoneIndex, budgetIndex) => {
+        const newBudgets = [...budgets];
+        const milestoneBudgets = newBudgets.filter((budget) => budget.MilestoneId === milestones[milestoneIndex].id);
+        milestoneBudgets[budgetIndex].value = event.target.value;
+        setBudgets(newBudgets);
+    };
     
 
     const onButtonClick = async (event) => {
@@ -97,7 +125,8 @@ export default function EditProposal({propId}) {
         setMilestoneNameErrors(Array(milestones.length).fill(""));
         setMilestoneStartDateErrors(Array(milestones.length).fill(""));
         setMilestoneEndDateErrors(Array(milestones.length).fill(""));
-        
+        setBudgetNameErrors(Array(budgets.length).fill(""));
+        setBudgetValueErrors(Array(budgets.length).fill(""));
         // Check if the user has entered both fields correctly
         if ("" === projectname) {
             setProjectNameError("Please enter a Project name")
@@ -164,14 +193,47 @@ export default function EditProposal({propId}) {
                 });
                 return;
             }else{
-            setMilestoneStartDateErrors((prevErrors) => {
-                const newErrors = [...prevErrors];
-                newErrors[i] = "";
-                return newErrors;
-            });
+                setMilestoneStartDateErrors((prevErrors) => {
+                    const newErrors = [...prevErrors];
+                    newErrors[i] = "";
+                    return newErrors;
+                });
+            }
+            
+            const milestoneBudgets = budgets.filter((budget) => budget.MilestoneId === milestones[i].id);
+            for (let j = 0; j < milestoneBudgets.length; j++) {
+                const budget = milestoneBudgets[j];
+                if ("" === budget.name) {
+                    setBudgetNameErrors((prevErrors) => {
+                        const newErrors = [...prevErrors];
+                        newErrors[j] = `Please enter a Budget name for Milestone ${i + 1} Budget ${j + 1}`;
+                        return newErrors;
+                    });
+                    return;
+                } else if (!/^[\w-]{1,15}$/.test(budget.name)) {
+                    setBudgetNameErrors((prevErrors) => {
+                        const newErrors = [...prevErrors];
+                        newErrors[j] = `Budget name for Milestone ${i + 1} Budget ${j + 1} has more than 15 characters`;
+                        return newErrors;
+                    });
+                    return;
+                } else if ("" === budget.value) {
+                    setBudgetValueErrors((prevErrors) => {
+                        const newErrors = [...prevErrors];
+                        newErrors[j] = `Please enter a Budget value for Milestone ${i + 1} Budget ${j + 1}`;
+                        return newErrors;
+                    });
+                    return;
+                } else if (budget.value > 1000000) {
+                    setBudgetValueErrors((prevErrors) => {
+                        const newErrors = [...prevErrors];
+                        newErrors[j] = `Budget value for Milestone ${i + 1} Budget ${j + 1} must be less than 1,000,000.00`;
+                        return newErrors;
+                    });
+                    return;
+                }
+            }
         }
-        }
-
         
         
         try {
@@ -189,9 +251,15 @@ export default function EditProposal({propId}) {
                     milestones: milestones.map((milestone) => ({
                         id: milestone.id, 
                         name: milestone.name,
-                        budget: milestone.budget, 
                         startDate: milestone.startDate,
-                        endDate: milestone.endDate
+                        endDate: milestone.endDate,
+                        budgets: budgets
+                            .filter((budget) => budget.MilestoneId === milestone.id)
+                            .map((budget) => ({
+                                budgetId: budget.id,
+                                budgetName: budget.name,
+                                budgetValue: budget.value,
+                            })),
                     })),
                 }),
             });
@@ -320,6 +388,28 @@ export default function EditProposal({propId}) {
                             />
                             <label className="errorLabel">{milestoneEndDateErrors[index]}</label>
                         </DatePickerWrapper>
+                        <br></br>
+                        {budgets
+                            .filter((budget) => budget.MilestoneId === milestone.id)
+                            .map((budget, budgetIndex) => (
+                                <div key={budgetIndex}>
+                                    <h4>Budget {budgetIndex + 1}</h4>
+                                    <input
+                                        type="text"
+                                        placeholder={`Milestone ${index + 1} Budget ${budgetIndex + 1} Name`}
+                                        value={budget.name || ""}
+                                        onChange={(ev) => handleBudgetNameChange(ev, index, budgetIndex)}
+                                    />
+                                    <label className="errorLabel">{budgetNameErrors[budgetIndex]}</label>
+                                    <input
+                                        type="text"
+                                        placeholder={`Milestone ${index + 1} Budget ${budgetIndex + 1} Value`}
+                                        value={budget.value !== null ? budget.value : "0"}
+                                        onChange={(ev) => handleBudgetValueChange(ev, index, budgetIndex)}
+                                    />
+                                    <label className="errorLabel">{budgetValueErrors[budgetIndex]}</label>
+                                </div>
+                            ))}
                     </div>
                 ))}
 

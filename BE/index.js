@@ -413,13 +413,13 @@ app.get('/get-budgets', async (req, res) => {
 
 
 app.get('/get-budgets/:milestoneId', async (req, res) => {
-  const { proposalId } = req.params;
+  const { milestoneId } = req.params;
 
   try {
-      const milestones = await Milestone.findAll({
-          where: { ProposalId: parseInt(proposalId, 10) },
+      const budgets = await Budget.findAll({
+          where: { MilestoneId: parseInt(milestoneId, 10) },
       });
-      res.status(200).json({ milestones });
+      res.status(200).json({ budgets });
   } catch (error) {
       console.error('Error fetching milestones:', error);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -511,22 +511,35 @@ app.put('/edit-proposal/:proposalId', async (req, res) => {
     )
 
     for (const milestoneData of milestones) {
-      const { id, name, startDate, endDate } = milestoneData;
-      if (id) {
-          // If milestone has an id, update it
-          await Milestone.update(
-              { name, startDate, endDate },
-              { where: { id: id } }
-          );
-      } else {
-          // If milestone does not have an id, create a new one
-          await Milestone.create(
-              { name, startDate, endDate, ProposalId: proposalId }
-          );
+      const { id, name, startDate, endDate, budgets } = milestoneData;
+      const milestone = await Milestone.findOne({ where: { id: id } });
+      if (!milestone) {
+        return res.status(404).json({ error: 'Milestone not found' });
       }
+
+      await milestone.update({ name, startDate, endDate });
+
+      for (const budgetData of budgets) {
+        const { budgetId, budgetName, budgetValue } = budgetData;
+
+        const budget = await Budget.findOne({ where: { id: budgetId } });
+        
+        await budget.update({ name: budgetName, value: budgetValue });
     }
+
+    const milestonesBudgets = await Budget.findAll({ where: { MilestoneId: milestone.id } });
+    const totalBudgetValue = milestonesBudgets.reduce((total, b) => total + parseFloat(b.value), 0);
+    await milestone.update({ budget: totalBudgetValue });
+    }
+
+    const proposal = await Proposal.findOne({ where: { id: proposalId } });
+        if (proposal) {
+          const allMilestones = await Milestone.findAll({ where: { ProposalId: proposal.id } });
+          const totalProposalValue = allMilestones.reduce((total, m) => total + parseFloat(m.budget), 0);
+          await proposal.update({ totalProposalValue });
+        }
       
-    res.json({ message: 'Proposal and milestones updated successfully' });
+    res.json({ message: 'Proposal, milestones and budgets updated successfully' });
   } catch(error) {
         console.error('Error updating proposal:', error);
         res.status(500).json({ error: 'Internal Server Error' });

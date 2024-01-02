@@ -26,7 +26,7 @@ const AddBudget = () => {
 
     const onButtonClick1 = async (event) => {
         // Prevent the default form submission behavior
-        event.preventDefault(); 
+         
         
         // Set initial error values to empty
         setBudgetNameError("")
@@ -37,24 +37,30 @@ const AddBudget = () => {
         // Check if the user has entered both fields correctly
         if ("" === budgetname) {
             setBudgetNameError("Please enter a Budget name")
+            event.preventDefault();
             return
         }
         if (!/^[\w-]{1,15}$/.test(budgetname)) {
             setBudgetNameError("Name has more than 15 characters")
+            event.preventDefault();
             return
         }
         else if ("" === budgetvalue) {
             setBudgetValueError("Please enter a Budget value")
+            event.preventDefault();
             return
         }
         else if (budgetvalue>1000000) {
             setBudgetValueError("Budget must be less than 1,000,000.00")
+            event.preventDefault();
             return
         }
         else if (!milestoneId) {
             setMilestoneError("Please choose a milestone");
+            event.preventDefault();
             return
-        } else {
+        } 
+        else {
             try {
                 const response = await fetch('http://localhost:3080/create-budget', {
                     method: 'POST',
