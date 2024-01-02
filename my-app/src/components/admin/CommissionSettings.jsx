@@ -113,6 +113,8 @@ const Button = styled.button`
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  margin-right: 250px;
+  margin-bottom: 10px;
 `;
 
 

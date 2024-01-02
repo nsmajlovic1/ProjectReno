@@ -21,7 +21,7 @@ const jwtSecretKey = "dsfdsfsdfdsvcsvdfgefg"
 
 // Set up CORS and JSON middlewares
 app.use(cors())
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 const excel = require('exceljs');
@@ -238,7 +238,8 @@ app.get('/stats', async (req, res) => {
 
 app.post('/create-proposal', async (req, res) => {
     const { name, description, startDate, endDate, milestoneCount} = req.body;
-  
+    const imageUrl = req.body.imageUrl;
+    console.log('Received Image URL:', imageUrl);
     try {
         if (milestoneCount > 3) {
             return res.status(400).json({ error: 'Milestone count exceeds the limit' });
@@ -248,6 +249,7 @@ app.post('/create-proposal', async (req, res) => {
             description,
             startDate,
             endDate,
+            imageUrl,
             milestoneCount,
             status: 'pending' 
         }, {
@@ -304,7 +306,7 @@ app.get('/get-proposals', async (req, res) => {
   
 
 app.post('/create-milestone', async (req, res) => {
-    const { name,budget, startDate, endDate, ProposalId } = req.body;
+    const { name, budget, startDate, endDate, ProposalId } = req.body;
     
     try {  
         const proposal = await Proposal.findOne({ where: { id: parseInt(ProposalId, 10) } });
@@ -502,23 +504,24 @@ app.put('/edit-proposal/:proposalId', async (req, res) => {
     const proposalId = req.params.proposalId;
     const { name, description, startDate, endDate, milestones } = req.body;
     try {
+      let imageUrl = req.body.imageUrl;
       await Proposal.update(
-          { name, description, startDate, endDate },
+          { name, description, startDate, endDate, imageUrl },
           { where: { id: proposalId } }
     )
 
     for (const milestoneData of milestones) {
-      const { id, name, budget, startDate, endDate } = milestoneData;
+      const { id, name, startDate, endDate } = milestoneData;
       if (id) {
           // If milestone has an id, update it
           await Milestone.update(
-              { name, budget, startDate, endDate },
+              { name, startDate, endDate },
               { where: { id: id } }
           );
       } else {
           // If milestone does not have an id, create a new one
           await Milestone.create(
-              { name, budget, startDate, endDate, ProposalId: proposalId }
+              { name, startDate, endDate, ProposalId: proposalId }
           );
       }
     }

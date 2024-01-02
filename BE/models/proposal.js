@@ -19,6 +19,9 @@ const Proposal = sequelize.define('Proposal', {
     type: DataTypes.DATEONLY,
     allowNull: false,
   },
+  imageUrl: {
+    type: DataTypes.TEXT,
+  },
   milestoneCount: {
     type: DataTypes.INTEGER,
     defaultValue: 0,

@@ -17,6 +17,7 @@ const Proposal = () => {
             const data = await response.json();
             setProposal(data.proposal);
             setUserRole(JSON.parse(localStorage.getItem("user"))?.role)
+            console.log('Proposal Image URL:', data.proposal.imageUrl);
           } catch (error) {
             console.error('Error fetching proposals:', error);
           }
@@ -148,10 +149,22 @@ const Proposal = () => {
         <ProposalContainer>
             <ProposalDetails>
                 <h3>{proposal.name}</h3>
+
+                <ImageContainer>
+                    {proposal.imageUrl ? (
+                    <>
+                    <img src={proposal.imageUrl} alt="upload"></img>
+                    </> 
+                    ) : (
+                    <p>Image preview</p>
+                    )}
+                </ImageContainer> 
+
                 <p><span>Description: </span>{proposal.description}</p>
                 <p><span>Start Date: </span>{proposal.startDate}</p>
                 <p><span>End Date: </span>{proposal.endDate}</p>
                 <p><span>Number of Milestones: </span>{proposal.milestoneCount}</p>
+                
                 <Value>Total Proposal Value: {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(proposal.totalProposalValue)}</Value>
                 <Value>Commission Amount: {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(calculateCommissionAmount(proposal))}</Value>
                 <Value>Net Payment to Creator: {new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' }).format(calculateNetPayment(proposal))}</Value>
@@ -186,7 +199,7 @@ const Proposal = () => {
                     </>
                 ) : null}
                     
-                  
+               
             </ProposalDetails>
         </ProposalContainer>
     </StyledProposal> );
@@ -201,7 +214,7 @@ const StyledProposal = styled.div`
 `;
 
 const ProposalDetails = styled.div`
-  flex: 2;
+  flex: 1;
   margin-left: 2rem;
   h3{
     font-size: 35px;
@@ -229,14 +242,23 @@ const ProposalContainer = styled.div`
   box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
   border-radius: 5px;
 `;
-/*
+
 const ImageContainer = styled.div`
-  flex: 1;
-  img {
-    width: 100%;
-  }
+  margin: 2rem 0rem -10rem 35rem;
+  padding: 2rem;
+  border: 1px solid rgb(183, 183, 183);
+  max-width: 300px;
+  max-height: 300px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(78, 78, 78);
+  /*position: absolute;
+  left: 50%;
+  top: 20%;*/
 `;
-*/
+
 const RejectButton = styled.button`
   padding: 9px 12px;
   border-radius: 5px;

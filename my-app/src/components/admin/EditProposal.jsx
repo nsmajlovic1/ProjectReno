@@ -17,6 +17,7 @@ export default function EditProposal({propId}) {
     const [projectstartDate, setprojectStartDate] = useState(null);
     const [projectendDate, setProjectEndDate] = useState(null);
     const [uploadimg, setUploadImg] = useState("")
+    const [dbImage, setDbImage] = useState("");
     const [projectnameError, setProjectNameError] = useState("")
     const [descriptionError, setDescriptionError] = useState("")
     const [projectstartDateError, setProjectStartDateError] = useState("");
@@ -46,6 +47,7 @@ export default function EditProposal({propId}) {
             setDescription(data.proposal.description)
             setprojectStartDate(new Date(data.proposal.startDate));
             setProjectEndDate(new Date(data.proposal.endDate));
+            setDbImage(data.proposal.imageUrl);
             
             const milestonesResponse = await fetch(`http://localhost:3080/get-milestones/${propId}`);
             const milestonesData = await milestonesResponse.json();
@@ -183,6 +185,7 @@ export default function EditProposal({propId}) {
                     description: description,
                     startDate: projectstartDate,
                     endDate: projectendDate,
+                    imageUrl: uploadimg,
                     milestones: milestones.map((milestone) => ({
                         id: milestone.id, 
                         name: milestone.name,
@@ -323,9 +326,9 @@ export default function EditProposal({propId}) {
                 <FourthButton onClick={onButtonClick}>Submit</FourthButton>
             </StyledForm>
             <ImagePreview>
-                {uploadimg ? (
+                {uploadimg || dbImage ? (
                 <>
-                <img src={uploadimg} alt="upload"></img>
+                <img src={uploadimg || dbImage} alt="upload"></img>
                 </> 
                 ) : (
                 <p>Image preview</p>

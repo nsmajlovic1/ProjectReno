@@ -59,7 +59,8 @@ const CreateProposal = () => {
                         name: projectname,
                         description: description,
                         startDate: startDate,
-                        endDate: endDate
+                        endDate: endDate,
+                        imageUrl: uploadimg,
                     }),
                 });
         
@@ -87,6 +88,7 @@ const CreateProposal = () => {
             reader.readAsDataURL(file)
             reader.onloadend = () =>{
                 setUploadImg(reader.result);
+                console.log('Image URL:', reader.result);
             }
         }
         else{
