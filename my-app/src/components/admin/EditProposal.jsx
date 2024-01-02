@@ -234,7 +234,10 @@ export default function EditProposal({propId}) {
                 }
             }
         }
-        
+        let imageUrlToSend = uploadimg;
+        if (!uploadimg && dbImage) {
+            imageUrlToSend = dbImage;
+        }
         
         try {
             const response = await fetch(`http://localhost:3080/edit-proposal/${propId}`, {
@@ -247,7 +250,7 @@ export default function EditProposal({propId}) {
                     description: description,
                     startDate: projectstartDate,
                     endDate: projectendDate,
-                    imageUrl: uploadimg,
+                    imageUrl: imageUrlToSend,
                     milestones: milestones.map((milestone) => ({
                         id: milestone.id, 
                         name: milestone.name,
